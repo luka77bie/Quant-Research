@@ -177,10 +177,33 @@ def test_historical_snapshot_can_verify_point_in_time_record(tmp_path: Path) -> 
         "https://web.archive.org/example", str(first.loc[0, "sha256"])
     )
     archive.fetch_catalog(catalog, _sources())
+    snapshot_path = (
+        tmp_path
+        / "data/raw/narrative_snapshots/central_bank/report_2020_q4.pdf"
+    )
+    snapshot_path.parent.mkdir(parents=True)
+    snapshot_path.write_bytes(FakeResponse.content)
 
     audit = audit_archive(tmp_path, catalog, _sources())
 
     assert audit.loc[0, "point_in_time_status"] == "verified"
+
+
+def test_snapshot_url_without_local_evidence_stays_provisional(
+    tmp_path: Path,
+) -> None:
+    archive = NarrativeArchive(tmp_path, session=FakeSession(), sleep=lambda _: None)
+    first = archive.fetch_catalog(_catalog(), _sources())
+    catalog = _catalog(
+        "https://web.archive.org/example", str(first.loc[0, "sha256"])
+    )
+
+    audit = audit_archive(tmp_path, catalog, _sources())
+
+    assert audit.loc[0, "point_in_time_status"] == "provisional"
+    assert audit.loc[0, "historical_snapshot_issue"] == (
+        "historical snapshot file missing"
+    )
 
 
 def test_coverage_gate_blocks_missing_quarters_and_provisional_records(

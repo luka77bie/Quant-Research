@@ -508,6 +508,16 @@ def run_narrative_audit(args: argparse.Namespace) -> int:
             path for path in (base.with_suffix(".pdf"), base.with_suffix(".meta.json"))
             if path.exists()
         )
+        snapshot_path = (
+            args.root
+            / "data"
+            / "raw"
+            / "narrative_snapshots"
+            / str(row["source_id"])
+            / f"{row['record_id']}.pdf"
+        )
+        if snapshot_path.exists():
+            raw_inputs.append(snapshot_path)
     manifest = build_run_manifest(
         input_path=args.catalog,
         additional_inputs=[args.sources, *raw_inputs],

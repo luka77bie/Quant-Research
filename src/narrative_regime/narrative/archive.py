@@ -294,10 +294,30 @@ def audit_archive(
             except (KeyError, TypeError, ValueError, json.JSONDecodeError, OSError):
                 issues.append("invalid metadata")
         snapshot = str(record["historical_snapshot_url"]).strip()
-        has_snapshot = bool(snapshot and snapshot.lower() != "nan")
+        declares_snapshot = bool(snapshot and snapshot.lower() != "nan")
+        snapshot_path = (
+            root
+            / "data"
+            / "raw"
+            / "narrative_snapshots"
+            / str(record["source_id"])
+            / f"{record['record_id']}.pdf"
+        )
+        snapshot_issue = ""
+        snapshot_sha256 = ""
+        if declares_snapshot:
+            if not snapshot_path.exists():
+                snapshot_issue = "historical snapshot file missing"
+            elif not snapshot_path.read_bytes().startswith(b"%PDF-"):
+                snapshot_issue = "invalid historical snapshot PDF"
+            else:
+                snapshot_sha256 = _sha256(snapshot_path)
+                if snapshot_sha256 != record["historical_snapshot_sha256"]:
+                    snapshot_issue = "historical snapshot checksum mismatch"
+        has_snapshot = declares_snapshot and not snapshot_issue
         snapshot_matches = (
             has_snapshot
-            and metadata.get("sha256") == record["historical_snapshot_sha256"]
+            and metadata.get("sha256") == snapshot_sha256
         )
         status = "ready" if not issues else "blocked"
         rows.append(
@@ -311,6 +331,7 @@ def audit_archive(
                 "sha256": metadata.get("sha256", ""),
                 "archive_status": status,
                 "historical_snapshot": has_snapshot,
+                "historical_snapshot_issue": snapshot_issue,
                 "point_in_time_status": (
                     "verified"
                     if status == "ready" and snapshot_matches
