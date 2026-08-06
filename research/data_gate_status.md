@@ -10,6 +10,7 @@
   ledger and sample; there are no unverified missing dates.
 - The qualified common sample contains 35,372 rows and 18 symbols.
 - No selected asset is assumed tradable on a marked no-trade execution date.
+- Frozen MOM60 ran from a clean commit at 10, 20, and 30 basis-point costs.
 
 ## Previous Provider Failure
 
@@ -23,6 +24,7 @@ adjusted, and backward-adjusted requests, so it was rejected.
 
 ## Next Gate
 
-The frozen MOM60 baseline is now runnable. Narrative and regime features remain
-ineligible until a point-in-time archive exposes `published_at`, `retrieved_at`,
-and `available_at` and passes the research contract.
+The next task is to reproduce the predecessor market-attention proxy on the
+qualified panel. Narrative and regime features remain ineligible until a
+point-in-time archive exposes `published_at`, `retrieved_at`, and `available_at`
+and passes the research contract.

@@ -155,6 +155,8 @@ basis points times one-way turnover. Missing returns for held ETFs stop the run.
 The exact execution approximation and its limitation are frozen in
 [`research/research_contract.md`](research/research_contract.md) and
 [`research/decision_log.md`](research/decision_log.md).
+The qualified result, annual path, and 10/20/30 bps sensitivity are reported in
+[`research/mom60_baseline_report.md`](research/mom60_baseline_report.md).
 
 ## Quality checks
 

@@ -65,3 +65,11 @@ Eight eligible symbol-dates are absent from both Tencent and Sina histories.
 They are committed in `configs/etf_calendar_exceptions.csv`. The panel records
 each at the prior close with zero volume, `observation_status=verified_no_trade`,
 and `is_tradable=false`. Any unlisted missing date still blocks the sample.
+
+## 2026-08-06: Accept MOM60 as the qualified benchmark
+
+The frozen MOM60 run on the Tencent common sample is accepted as the benchmark,
+not as a successful strategy claim. At 10 basis points it annualizes at 9.68%
+with a 0.486 zero-rate Sharpe and -42.02% maximum drawdown. The result is highly
+path-dependent, including 103.99% in 2020 and -32.39% in 2022. The next gate is
+reproduction of the predecessor market-attention proxy on the same panel.
