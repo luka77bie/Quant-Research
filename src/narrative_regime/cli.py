@@ -35,6 +35,7 @@ from narrative_regime.narrative.extraction import (
     extract_catalog_text,
     extraction_summary,
 )
+from narrative_regime.narrative.features import build_policy_features
 from narrative_regime.narrative.sections import (
     parse_policy_sections,
     section_summary,
@@ -151,6 +152,16 @@ def build_parser() -> argparse.ArgumentParser:
     narrative_sections.add_argument("--minimum-characters", type=int, default=1_500)
     narrative_sections.add_argument("--maximum-characters", type=int, default=6_000)
     narrative_sections.add_argument("--minimum-cjk-ratio", type=float, default=0.60)
+
+    narrative_features = subparsers.add_parser(
+        "narrative-features",
+        help="build frozen return-blind policy-language diagnostics",
+    )
+    narrative_features.add_argument("--catalog", type=Path, required=True)
+    narrative_features.add_argument("--sources", type=Path, required=True)
+    narrative_features.add_argument("--lexicon", type=Path, required=True)
+    narrative_features.add_argument("--root", type=Path, default=Path.cwd())
+    narrative_features.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -746,6 +757,64 @@ def run_narrative_sections(args: argparse.Namespace) -> int:
     return 0 if summary["section_gate"] == "pass" else 1
 
 
+def run_narrative_features(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    sources = pd.read_csv(args.sources, dtype=str, keep_default_na=False)
+    lexicon = pd.read_csv(args.lexicon, dtype=str, keep_default_na=False)
+    result = build_policy_features(args.root, catalog, sources, lexicon)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    feature_path = args.output_dir / "policy_features.csv"
+    counts_path = args.output_dir / "policy_term_counts.csv"
+    summary_path = args.output_dir / "policy_feature_summary.json"
+    result.features.to_csv(feature_path, index=False)
+    result.term_counts.to_csv(counts_path, index=False)
+    summary_path.write_text(
+        json.dumps(result.summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    section_inputs = []
+    for record_id in result.features["record_id"].astype(str):
+        section_path = (
+            args.root / "data" / "processed" / "narrative_sections" / f"{record_id}.txt"
+        )
+        section_inputs.extend([section_path, section_path.with_suffix(".meta.json")])
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        additional_inputs=[args.sources, args.lexicon, *section_inputs],
+        command=[
+            "nrea",
+            "narrative-features",
+            "--catalog",
+            str(args.catalog),
+            "--sources",
+            str(args.sources),
+            "--lexicon",
+            str(args.lexicon),
+            "--root",
+            str(args.root),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "similarity": "character_bigram_cosine",
+            "term_normalization": "remove_whitespace_exact_match",
+            "return_data_used": False,
+            "composite_score_created": False,
+            "research_use": "exploratory_only",
+        },
+        outputs=[feature_path, counts_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "policy_feature_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(result.features.to_string(index=False))
+    print(json.dumps(result.summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if result.summary["feature_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -768,6 +837,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_narrative_extract(args)
     if args.command == "narrative-sections":
         return run_narrative_sections(args)
+    if args.command == "narrative-features":
+        return run_narrative_features(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

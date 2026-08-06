@@ -218,6 +218,16 @@ nrea narrative-sections \
   --output-dir outputs/narrative_sections_full
 ```
 
+Build the frozen return-blind policy-language diagnostics:
+
+```bash
+nrea narrative-features \
+  --catalog configs/pboc_mpr_catalog.csv \
+  --sources configs/narrative_sources.csv \
+  --lexicon configs/policy_term_lexicon.csv \
+  --output-dir outputs/policy_features
+```
+
 The downloader caches each PDF independently, retries failures, rejects
 unapproved domains and non-PDF responses, and locks reviewed checksums in the
 catalog. All 32 quarterly documents from 2018 through 2025 are archived and
@@ -246,7 +256,8 @@ universe. The PBOC archive covers all 32 quarters and deterministic extraction
 and policy-section parsing pass, but none of the documents has a historically
 matched snapshot. Strict point-in-time modeling remains blocked;
 publication-time text diagnostics may proceed only under the qualified
-exploratory protocol.
+exploratory protocol. The frozen diagnostics use no return data and create no
+composite score.
 
 ## License
 

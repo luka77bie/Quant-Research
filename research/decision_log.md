@@ -131,3 +131,17 @@ The parsed sections contain 88,768 non-whitespace characters in total. Individua
 sections range from 2,080 to 3,829 characters, CJK ratios range from 90.28% to
 91.89%, and no section hashes are duplicated. This passes the structural parser
 gate but does not validate semantics, historical byte identity, or predictiveness.
+
+## 2026-08-06: Freeze return-blind policy diagnostics before market joins
+
+A 25-term literal lexicon is frozen across accommodation, restraint, financial
+risk control, exchange-rate stability, and structural support. The feature table
+contains counts, per-1,000-character densities, quarter-over-quarter changes,
+section length, and prior-quarter character-bigram cosine similarity. It does
+not read returns, combine categories, optimize weights, or assign policy labels.
+
+The restraint category is sparse, with nonzero counts in only 8 of 32 quarters.
+Three frozen terms have zero counts across the sample: `降息`, `防止资金空转`,
+and `房住不炒`. They remain in the audit rather than being replaced after
+observing the corpus. This baseline is a measurement diagnostic, not an alpha
+signal.

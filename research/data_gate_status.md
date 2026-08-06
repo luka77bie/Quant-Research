@@ -22,6 +22,9 @@
 - The deterministic forward-looking policy-section parser passes for all 32
   reports, producing 88,768 non-whitespace characters with no duplicate section
   hashes.
+- The frozen non-LLM diagnostic table covers all 32 quarters with 25 literal
+  policy terms in five categories and 31 prior-quarter text comparisons. It
+  reads no return data and creates no composite score.
 
 ## Previous Provider Failure
 
