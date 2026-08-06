@@ -11,6 +11,10 @@
 - The qualified common sample contains 35,372 rows and 18 symbols.
 - No selected asset is assumed tradable on a marked no-trade execution date.
 - Frozen MOM60 ran from a clean commit at 10, 20, and 30 basis-point costs.
+- The predecessor market-attention directionally reproduced for 2022-2023 and
+  is frozen as a market-data control rather than narrative evidence.
+- Three PBOC pilot reports download reproducibly with locked checksums, exact
+  publication times, retrieval times, and conservative availability times.
 
 ## Previous Provider Failure
 
@@ -22,9 +26,10 @@ BaoStock was also tested because it requires no token. It recognized ETF basic
 information but returned zero K-line rows for `510300` under unadjusted, forward-
 adjusted, and backward-adjusted requests, so it was rejected.
 
-## Next Gate
+## Current Narrative Blocker
 
-The next task is to reproduce the predecessor market-attention proxy on the
-qualified panel. Narrative and regime features remain ineligible until a
-point-in-time archive exposes `published_at`, `retrieved_at`, and `available_at`
-and passes the research contract.
+The narrative pilot covers only 3 of 32 expected quarters from 2018 through
+2025. All three records are provisional because no historical snapshot with a
+matching checksum has been recorded. The modeling gate therefore remains
+blocked. The next task is complete quarterly catalog coverage and test whether
+historical snapshot verification is feasible.

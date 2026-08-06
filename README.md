@@ -180,6 +180,33 @@ and behavior was period-sensitive. This feature is therefore frozen as a
 market-data control, not accepted as narrative evidence. See
 [`research/attention_proxy_reproduction.md`](research/attention_proxy_reproduction.md).
 
+## Narrative archive gate
+
+Download only the manually reviewed official-policy pilot catalog:
+
+```bash
+nrea narrative-fetch \
+  --catalog configs/narrative_pilot_catalog.csv \
+  --sources configs/narrative_sources.csv
+```
+
+Audit local checksums, three required timestamps, historical snapshot status,
+and quarterly coverage without a network request:
+
+```bash
+nrea narrative-audit \
+  --catalog configs/narrative_pilot_catalog.csv \
+  --sources configs/narrative_sources.csv \
+  --output-dir outputs/narrative_archive_pilot
+```
+
+The pilot downloader caches each PDF independently, retries failures, rejects
+unapproved domains and non-PDF responses, and locks reviewed checksums in the
+catalog. The audit intentionally exits unsuccessfully while any expected
+quarter is missing or provisional. The current 3-of-32 result and stop rules are
+documented in
+[`research/narrative_archive_pilot.md`](research/narrative_archive_pilot.md).
+
 ## Quality checks
 
 ```bash
@@ -195,8 +222,9 @@ Yahoo Finance, or any live market-data endpoint.
 ETF listing dates are verified against official exchange lists. The Tencent
 provider produced all 18 isolated caches, the common-sample audit passed, and
 the frozen MOM60 and market-attention control run on the qualified dynamic
-universe. Genuine narrative features remain blocked until their point-in-time
-archive passes the research contract.
+universe. The PBOC narrative archive pilot is operational but covers only 3 of
+32 quarters and has no historically matched snapshots. Genuine narrative
+features remain blocked until the archive passes the research contract.
 
 ## License
 

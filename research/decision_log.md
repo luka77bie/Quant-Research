@@ -86,3 +86,16 @@ Tencent lacks transaction value, so `close * volume` replaces the predecessor's
 AKShare amount field. The fixed proxy is retained only as a market-data control.
 Its feature weights, windows, and 50% blend will not be tuned on this sample.
 The next gate is an auditable point-in-time narrative archive.
+
+## 2026-08-06: Separate archive readiness from point-in-time verification
+
+Three official PBOC quarterly reports were retrieved successfully and locked by
+checksum. The downloader is resumable per document and records publication,
+retrieval, and conservative availability timestamps. Current official PDFs are
+not treated as proof that the same bytes existed at historical publication.
+
+The pilot covers 3 of 32 required 2018-2025 quarters and has no matching
+historical snapshots. Archive status is ready, point-in-time status is
+provisional, and the modeling gate remains blocked. Text extraction, LLM
+features, and narrative backtests will not begin until coverage and revision
+risk receive an explicit decision.

@@ -38,6 +38,8 @@ Baseline definitions may only change to fix a documented correctness bug.
 2. A symbol failure must be visible and must not be silently filled.
 3. Narrative records must expose `published_at`, `retrieved_at`, and
    `available_at` before entering a historical signal.
+   Exact source domain, timestamp evidence, document checksum, revision risk,
+   and point-in-time verification status must also remain auditable.
 4. Model selection and final evaluation periods must be separated.
 5. Results must include turnover, drawdown, subperiods, and failure cases.
 
