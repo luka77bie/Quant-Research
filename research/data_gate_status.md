@@ -13,8 +13,12 @@
 - Frozen MOM60 ran from a clean commit at 10, 20, and 30 basis-point costs.
 - The predecessor market-attention directionally reproduced for 2022-2023 and
   is frozen as a market-data control rather than narrative evidence.
-- Three PBOC pilot reports download reproducibly with locked checksums, exact
-  publication times, retrieval times, and conservative availability times.
+- All 32 PBOC quarterly reports from 2018 through 2025 download reproducibly
+  with locked checksums, exact displayed publication times, retrieval times,
+  and conservative 24-hour delayed availability times.
+- Deterministic PDF extraction passes for all 32 reports: 1,901 pages and
+  1,323,999 non-whitespace characters, with no empty pages or replacement
+  characters.
 
 ## Previous Provider Failure
 
@@ -28,8 +32,13 @@ adjusted, and backward-adjusted requests, so it was rejected.
 
 ## Current Narrative Blocker
 
-The narrative pilot covers only 3 of 32 expected quarters from 2018 through
-2025. All three records are provisional because no historical snapshot with a
-matching checksum has been recorded. The modeling gate therefore remains
-blocked. The next task is complete quarterly catalog coverage and test whether
-historical snapshot verification is feasible.
+Catalog coverage and extraction quality now pass, but all 32 records remain
+provisional because no contemporaneous historical snapshot with a matching
+checksum has been established. Wayback requests timed out and exact Common
+Crawl index requests returned gateway errors in the current environment; these
+results leave snapshot feasibility unresolved and do not prove absence.
+
+The strict point-in-time modeling gate therefore remains blocked. Extracted
+text may be used only for a clearly labelled publication-time reconstruction
+with signal-delay sensitivity. It may not support a strictly point-in-time
+backtest or headline claim.

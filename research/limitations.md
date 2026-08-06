@@ -21,6 +21,17 @@
 - A currently downloadable, versioned official PDF still may have been replaced
   after publication. Without a historical snapshot and matching checksum it is
   provisional, not strictly point-in-time verified.
+- Current PBOC page paths for some 2024-2025 reports reflect a later site
+  migration, so URL structure is not evidence of original publication-time
+  availability. The 2019 Q3 page displays exactly 09:00:00, a default-looking
+  time that should be covered by delay sensitivity rather than treated as
+  precise to the second.
+- Wayback requests timed out and exact Common Crawl index queries returned
+  gateway errors in the current environment. Snapshot availability is therefore
+  unresolved; these failures are not evidence that snapshots do not exist.
+- PDF text extraction passing structural quality thresholds does not establish
+  semantic fidelity for every table, reading order, heading, or policy phrase.
+  Section-level validation is required before constructing features.
 - A small number of macro regimes makes conditional results especially easy to
   overfit. Crisis case studies are interpretation, not independent validation.
 - Tencent does not expose transaction value in the qualified endpoint. The

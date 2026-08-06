@@ -43,9 +43,25 @@ Baseline definitions may only change to fix a documented correctness bug.
 4. Model selection and final evaluation periods must be separated.
 5. Results must include turnover, drawdown, subperiods, and failure cases.
 
+## Narrative evidence levels
+
+- **Strict point-in-time:** every historical document version is supported by a
+  contemporaneous snapshot or independent dated checksum. Only this level may
+  support the original headline question and a strict historical backtest.
+- **Publication-time reconstruction:** the current official document is locked
+  by checksum and joined no earlier than the displayed publication time plus a
+  pre-specified delay. This level permits exploratory language diagnostics and
+  delay sensitivity, but claims must disclose unresolved revision risk.
+- Passing PDF extraction quality checks is an engineering gate, not evidence of
+  point-in-time status or predictive value.
+
 ## Initial stop conditions
 
 - No reproducible point-in-time narrative archive can be assembled.
+- Section parsing cannot consistently isolate the target policy discussion in
+  at least 30 of 32 reports under one deterministic rule.
+- A language feature is proposed before a frozen section parser, simple
+  non-LLM baseline, and delay protocol are documented.
 - Results depend on one crisis subperiod or one ETF family.
 - Incremental performance disappears under reasonable costs or signal delays.
 - More than two consecutive project weeks are spent on provider-specific data

@@ -1,5 +1,8 @@
 # Point-in-Time Narrative Archive Pilot v0.1
 
+> Historical pilot record. The completed 32-report outcome and current decision
+> are documented in `research/pboc_archive_and_text_report.md`.
+
 ## Decision
 
 The archive plumbing passes and the modeling gate remains blocked. The official
@@ -32,7 +35,8 @@ and [2024 Q4](https://www.pbc.gov.cn/goutongjiaoliu/113456/113469/20250922125545
 
 All three downloads succeeded on their first trial and a second run used the
 validated caches without a network request. Their exact checksums are locked in
-`configs/narrative_pilot_catalog.csv`. A changed official file, corrupt cache,
+the catalog then named `configs/narrative_pilot_catalog.csv` (now replaced by
+`configs/pboc_mpr_catalog.csv`). A changed official file, corrupt cache,
 wrong domain, HTML queue page, or duplicate source-quarter now blocks the run.
 
 ## Gate Result

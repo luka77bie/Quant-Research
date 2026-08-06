@@ -99,3 +99,23 @@ historical snapshots. Archive status is ready, point-in-time status is
 provisional, and the modeling gate remains blocked. Text extraction, LLM
 features, and narrative backtests will not begin until coverage and revision
 risk receive an explicit decision.
+
+## 2026-08-06: Complete the catalog and separate extraction from modeling
+
+The official PBOC master index supplies all 32 quarterly monetary policy
+execution reports from 2018 Q1 through 2025 Q4. Exact displayed publication
+times, a conservative 24-hour availability delay, official URLs, and SHA-256
+checksums are locked in `configs/pboc_mpr_catalog.csv`. All documents download
+and pass deterministic text extraction quality checks.
+
+Historical byte identity remains unverified for every report. Snapshot-service
+requests were inaccessible in the current environment, and current PBOC paths
+show evidence of site migration. The project therefore adopts two independent
+gates: archive and extraction readiness pass, while the strict point-in-time
+modeling gate remains blocked.
+
+Deterministic section parsing and pre-specified policy-language diagnostics may
+proceed as exploratory publication-time reconstruction. LLM features, parameter
+search, portfolio optimization, and strict historical-performance claims remain
+blocked until either matching historical evidence is found or the research
+contract is explicitly downgraded with delay sensitivities and qualified claims.
