@@ -83,3 +83,27 @@ def test_drawdown_includes_loss_on_first_invested_day() -> None:
     result = run_momentum_baseline(prices, lookback=2, top_n=2, cost_bps=0)
 
     assert result.metrics["max_drawdown"] == pytest.approx(-0.5)
+
+
+def test_momentum_blocks_untradable_selected_asset_on_execution() -> None:
+    prices = _prices()
+    prices["is_tradable"] = True
+    prices.loc[
+        (prices["date"] == pd.Timestamp("2024-02-01")) & prices["symbol"].eq("A"),
+        "is_tradable",
+    ] = False
+
+    with pytest.raises(ValueError, match="not tradable.*A"):
+        run_momentum_baseline(prices, lookback=2, top_n=2)
+
+
+def test_tradability_handles_dynamic_listing_gaps() -> None:
+    prices = _prices()
+    prices["is_tradable"] = True
+    prices = prices[
+        ~((prices["date"] < pd.Timestamp("2024-02-01")) & prices["symbol"].eq("C"))
+    ]
+
+    result = run_momentum_baseline(prices, lookback=2, top_n=2)
+
+    assert not result.daily.empty

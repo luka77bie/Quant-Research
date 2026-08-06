@@ -8,16 +8,20 @@ symbols, and be safe to rerun.
 
 ## Provider order
 
-1. AKShare is the primary convenience source for Chinese ETF history.
-2. Yahoo Finance is an optional per-symbol fallback, not a required queue.
-3. A Yahoo timeout or throttle must not erase an AKShare cache or block later
-   symbols from being attempted.
+1. Tencent's adjusted K-line endpoint is the primary convenience source for
+   Chinese ETF history and is requested in calendar-year chunks.
+2. AKShare is an optional per-symbol fallback kept in an isolated cache.
+3. Yahoo Finance is an explicit optional fallback, not a required queue.
+4. A fallback timeout or throttle must not erase another provider's cache or
+   block later symbols from being attempted.
 
 ## Retry and resume
 
 - Each provider receives three attempts by default.
 - Retries use exponential backoff with small jitter.
 - Symbols are processed sequentially with a configurable delay.
+- Tencent history is paged by calendar year to stay well below the endpoint's
+  row cap; repeated refreshes merge by date instead of replacing good rows.
 - Validated caches are skipped on an identical rerun.
 - Failed and partial symbols are attempted again.
 - Three consecutive incomplete symbols stop the batch by default. Remaining
@@ -36,7 +40,9 @@ A provider response is `validated` only when:
 
 ETF launch dates must be verified separately and recorded as `available_from`.
 The tolerance rules are screening checks, not proof that every exchange trading
-day is present. A later exchange-calendar audit is required before backtesting.
+day is present. The reference-calendar audit is required before backtesting.
+Only a dual-source verified no-trade date in the committed exception ledger may
+receive an explicit prior-close mark with zero volume and `is_tradable=false`.
 
 ## Cross-provider boundary
 
@@ -51,6 +57,6 @@ Yahoo rows. Before any cross-provider merge, compare an overlapping period for:
 
 The comparison and merge decision must be recorded in the decision log.
 
-Sina's unadjusted ETF history is not a substitute for the frozen adjusted-close
-series. Its current adjustment payload must not be used until the factor and
-cash-adjustment formula is verified against documented corporate-action cases.
+Sina's raw ETF history is used only as independent coverage evidence. Its
+adjustment payload contains transient records around some ETF share splits and
+is not an approved backtest source.

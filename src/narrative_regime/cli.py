@@ -10,11 +10,13 @@ import pandas as pd
 
 from narrative_regime.baseline.momentum import run_momentum_baseline
 from narrative_regime.data.audit import audit_provider_cache
+from narrative_regime.data.comparison import compare_provider_caches
 from narrative_regime.data.downloader import DownloadManager
 from narrative_regime.data.models import FetchRequest
 from narrative_regime.data.panel import (
     build_common_sample,
     validate_availability_metadata,
+    validate_calendar_exceptions,
 )
 from narrative_regime.data.providers import build_providers
 from narrative_regime.provenance import build_run_manifest
@@ -28,7 +30,7 @@ def build_parser() -> argparse.ArgumentParser:
     download.add_argument("--universe", type=Path, required=True)
     download.add_argument("--start", type=date.fromisoformat, required=True)
     download.add_argument("--end", type=date.fromisoformat, required=True)
-    download.add_argument("--providers", default="akshare,yahoo")
+    download.add_argument("--providers", default="tencent,akshare")
     download.add_argument(
         "--symbols",
         help="comma-separated universe symbols to resume selectively",
@@ -45,11 +47,21 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--root", type=Path, default=Path.cwd())
     audit.add_argument("--output", type=Path)
 
+    compare = subparsers.add_parser(
+        "compare-providers", help="compare two isolated provider caches"
+    )
+    compare.add_argument("--left-provider", required=True)
+    compare.add_argument("--right-provider", required=True)
+    compare.add_argument("--symbols", required=True)
+    compare.add_argument("--root", type=Path, default=Path.cwd())
+    compare.add_argument("--output", type=Path, required=True)
+
     sample = subparsers.add_parser(
         "build-sample", help="build an audited single-provider common sample"
     )
     sample.add_argument("--universe", type=Path, required=True)
     sample.add_argument("--availability-sources", type=Path, required=True)
+    sample.add_argument("--calendar-exceptions", type=Path, required=True)
     sample.add_argument("--provider", required=True)
     sample.add_argument("--start", type=date.fromisoformat, required=True)
     sample.add_argument("--end", type=date.fromisoformat, required=True)
@@ -179,10 +191,32 @@ def run_audit(args: argparse.Namespace) -> int:
     return 0 if report["audit_status"].eq("ready").all() else 1
 
 
+def run_compare_providers(args: argparse.Namespace) -> int:
+    symbols = [item.strip() for item in args.symbols.split(",") if item.strip()]
+    if not symbols:
+        raise ValueError("--symbols must contain at least one symbol")
+    if len(symbols) != len(set(symbols)):
+        raise ValueError("--symbols contains duplicate symbols")
+    report = compare_provider_caches(
+        args.root,
+        args.left_provider,
+        args.right_provider,
+        symbols,
+    )
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    report.to_csv(args.output, index=False)
+    counts = report["status"].value_counts().to_dict()
+    print(" ".join(f"{key}={value}" for key, value in sorted(counts.items())))
+    print(f"report={args.output}")
+    return 0 if report["status"].eq("ready").all() else 1
+
+
 def run_build_sample(args: argparse.Namespace) -> int:
     universe = _read_universe(args.universe)
     sources = pd.read_csv(args.availability_sources, dtype={"symbol": str})
+    exceptions = pd.read_csv(args.calendar_exceptions, dtype={"symbol": str})
     validate_availability_metadata(universe, sources)
+    validate_calendar_exceptions(universe, exceptions)
     result = build_common_sample(
         root=args.root,
         provider=args.provider,
@@ -190,6 +224,7 @@ def run_build_sample(args: argparse.Namespace) -> int:
         start=args.start,
         end=args.end,
         reference_symbol=args.reference_symbol,
+        calendar_exceptions=exceptions,
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -219,6 +254,8 @@ def run_build_sample(args: argparse.Namespace) -> int:
         str(args.availability_sources),
         "--provider",
         args.provider,
+        "--calendar-exceptions",
+        str(args.calendar_exceptions),
         "--start",
         args.start.isoformat(),
         "--end",
@@ -232,7 +269,11 @@ def run_build_sample(args: argparse.Namespace) -> int:
     ]
     manifest = build_run_manifest(
         input_path=args.universe,
-        additional_inputs=[args.availability_sources, *cache_inputs],
+        additional_inputs=[
+            args.availability_sources,
+            args.calendar_exceptions,
+            *cache_inputs,
+        ],
         command=command,
         parameters={
             "provider": args.provider,
@@ -312,6 +353,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_download(args)
     if args.command == "audit":
         return run_audit(args)
+    if args.command == "compare-providers":
+        return run_compare_providers(args)
     if args.command == "build-sample":
         return run_build_sample(args)
     if args.command == "baseline":

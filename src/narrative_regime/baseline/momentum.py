@@ -33,6 +33,7 @@ def run_momentum_baseline(
         raise ValueError("cost_bps must not be negative")
 
     close = _close_panel(prices)
+    tradable = _tradable_panel(prices, close)
     if len(close.index) <= lookback:
         raise ValueError("price history is shorter than the momentum lookback")
 
@@ -51,6 +52,13 @@ def run_momentum_baseline(
             continue
         execution_date = close.index[location + 1]
         selected = scores.head(top_n)
+        unavailable = ~tradable.loc[execution_date, selected.index]
+        if unavailable.any():
+            symbols = ", ".join(unavailable.index[unavailable])
+            date_text = execution_date.date().isoformat()
+            raise ValueError(
+                f"selected assets are not tradable on {date_text}: {symbols}"
+            )
         target = pd.Series(0.0, index=close.columns)
         target.loc[selected.index] = 1.0 / top_n
         target_changes[execution_date] = target
@@ -151,6 +159,22 @@ def _close_panel(prices: pd.DataFrame) -> pd.DataFrame:
     if frame["close"].isna().any() or (frame["close"] <= 0).any():
         raise ValueError("close prices must be positive and non-missing")
     return frame.pivot(index="date", columns="symbol", values="close").sort_index()
+
+
+def _tradable_panel(prices: pd.DataFrame, close: pd.DataFrame) -> pd.DataFrame:
+    if "is_tradable" not in prices:
+        return pd.DataFrame(True, index=close.index, columns=close.columns)
+    frame = prices.loc[:, ["date", "symbol", "is_tradable"]].copy()
+    frame["date"] = pd.to_datetime(frame["date"], errors="raise").dt.normalize()
+    frame["symbol"] = frame["symbol"].astype(str)
+    if frame["is_tradable"].dtype != bool:
+        normalized = frame["is_tradable"].astype(str).str.lower()
+        if not normalized.isin({"true", "false"}).all():
+            raise ValueError("is_tradable must contain only true or false")
+        frame["is_tradable"] = normalized.eq("true")
+    panel = frame.pivot(index="date", columns="symbol", values="is_tradable")
+    panel = panel.reindex(index=close.index, columns=close.columns)
+    return panel.eq(True)
 
 
 def _performance_metrics(daily: pd.DataFrame) -> dict[str, float | int]:

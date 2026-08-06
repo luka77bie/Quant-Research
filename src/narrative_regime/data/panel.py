@@ -76,6 +76,38 @@ def validate_availability_metadata(
         raise ValueError("availability source evidence contains missing values")
 
 
+def validate_calendar_exceptions(
+    universe: pd.DataFrame,
+    exceptions: pd.DataFrame,
+) -> None:
+    required = {
+        "symbol",
+        "date",
+        "reason",
+        "evidence_left_url",
+        "evidence_right_url",
+        "verified_at",
+    }
+    missing = sorted(required - set(exceptions.columns))
+    if missing:
+        raise ValueError(f"calendar exceptions missing columns: {', '.join(missing)}")
+    pairs = exceptions[["symbol", "date"]].astype(str)
+    if pairs.duplicated().any():
+        raise ValueError("calendar exceptions contain duplicate symbol-date pairs")
+    unknown = sorted(
+        set(exceptions["symbol"].astype(str)) - set(universe["symbol"].astype(str))
+    )
+    if unknown:
+        unknown_text = ", ".join(unknown)
+        raise ValueError(f"calendar exceptions contain unknown symbols: {unknown_text}")
+    pd.to_datetime(exceptions["date"], errors="raise")
+    evidence = exceptions[
+        ["reason", "evidence_left_url", "evidence_right_url", "verified_at"]
+    ]
+    if evidence.isna().any().any() or evidence.astype(str).eq("").any().any():
+        raise ValueError("calendar exception evidence contains missing values")
+
+
 def build_common_sample(
     *,
     root: Path,
@@ -84,6 +116,7 @@ def build_common_sample(
     start: date,
     end: date,
     reference_symbol: str,
+    calendar_exceptions: pd.DataFrame | None = None,
 ) -> CommonSampleResult:
     """Build a dynamic-universe panel on one reference ETF's trading dates."""
     if start > end:
@@ -91,6 +124,13 @@ def build_common_sample(
     symbols = universe["symbol"].astype(str).tolist()
     if reference_symbol not in symbols:
         raise ValueError("reference symbol is not in the universe")
+    exception_dates: dict[str, pd.DatetimeIndex] = {}
+    if calendar_exceptions is not None:
+        validate_calendar_exceptions(universe, calendar_exceptions)
+        for symbol, group in calendar_exceptions.groupby("symbol"):
+            exception_dates[str(symbol)] = pd.DatetimeIndex(
+                pd.to_datetime(group["date"])
+            )
 
     cache_audit = audit_provider_cache(root, provider, symbols)
     cache_status = cache_audit.set_index("symbol")["audit_status"]
@@ -147,11 +187,29 @@ def build_common_sample(
         actual_dates = pd.DatetimeIndex(eligible["date"])
         missing_dates = expected_dates.difference(actual_dates)
         unexpected_dates = actual_dates.difference(expected_dates)
+        approved_dates = exception_dates.get(symbol, pd.DatetimeIndex([]))
+        active_exceptions = approved_dates.intersection(expected_dates)
+        verified_no_trade = missing_dates.intersection(active_exceptions)
+        unverified_missing = missing_dates.difference(active_exceptions)
+        stale_exceptions = active_exceptions.intersection(actual_dates)
         issues: list[str] = []
-        if not missing_dates.empty:
-            issues.append(f"{len(missing_dates)} missing reference trading dates")
+        if not unverified_missing.empty:
+            issues.append(
+                f"{len(unverified_missing)} unverified missing reference trading dates"
+            )
         if not unexpected_dates.empty:
             issues.append(f"{len(unexpected_dates)} non-reference trading dates")
+        if not stale_exceptions.empty:
+            issues.append(f"{len(stale_exceptions)} stale calendar exceptions")
+        eligible["observation_status"] = "observed"
+        eligible["is_tradable"] = True
+        if not verified_no_trade.empty:
+            eligible, marking_issue = _add_verified_no_trade_marks(
+                eligible,
+                verified_no_trade,
+            )
+            if marking_issue:
+                issues.append(marking_issue)
         status = "ready" if not issues else "misaligned"
         audit_records.append(
             _audit_record(
@@ -163,6 +221,7 @@ def build_common_sample(
                 expected_rows=len(expected_dates),
                 observed_rows=len(actual_dates),
                 missing_dates=len(missing_dates),
+                verified_no_trade_dates=len(verified_no_trade),
                 unexpected_dates=len(unexpected_dates),
                 issues="; ".join(issues),
             )
@@ -199,6 +258,7 @@ def _audit_record(
     expected_rows: int = 0,
     observed_rows: int = 0,
     missing_dates: int = 0,
+    verified_no_trade_dates: int = 0,
     unexpected_dates: int = 0,
     issues: str = "",
 ) -> dict[str, object]:
@@ -215,6 +275,31 @@ def _audit_record(
         "expected_rows": expected_rows,
         "observed_rows": observed_rows,
         "missing_dates": missing_dates,
+        "verified_no_trade_dates": verified_no_trade_dates,
         "unexpected_dates": unexpected_dates,
         "issues": issues,
     }
+
+
+def _add_verified_no_trade_marks(
+    frame: pd.DataFrame,
+    dates: pd.DatetimeIndex,
+) -> tuple[pd.DataFrame, str]:
+    result = frame.copy()
+    rows = []
+    for missing_date in dates.sort_values():
+        prior = result[result["date"] < missing_date].tail(1)
+        if prior.empty:
+            return frame, "verified no-trade date has no prior close"
+        close = float(prior.iloc[0]["close"])
+        row = prior.iloc[0].copy()
+        row["date"] = missing_date
+        for column in ("open", "high", "low", "close"):
+            row[column] = close
+        row["volume"] = 0
+        row["amount"] = 0
+        row["observation_status"] = "verified_no_trade"
+        row["is_tradable"] = False
+        rows.append(row)
+        result = pd.concat([result, pd.DataFrame([row])], ignore_index=True)
+    return result.sort_values("date").reset_index(drop=True), ""

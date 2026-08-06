@@ -1,7 +1,7 @@
 # Limitations and Failure Cases v0.1
 
-- AKShare and Yahoo Finance are convenience interfaces, not guaranteed data
-  archives. Provider success does not prove historical completeness.
+- Tencent, AKShare, and Yahoo Finance are convenience interfaces, not guaranteed
+  data archives. Provider success does not prove historical completeness.
 - ETF launch dates, delistings, ticker changes, and the manually selected
   universe can create survivorship and availability bias.
 - A seven-day boundary tolerance avoids false alarms around weekends and
@@ -14,8 +14,8 @@
   close. An open-aware delayed-execution sensitivity test is required before
   interpreting return levels as implementable.
 - The current baseline engine assumes all selected ETFs share a common trading
-  calendar. A missing return for any held ETF is a hard failure, not a zero
-  return.
+  calendar. Verified suspensions are explicitly marked at the prior close;
+  every other missing return for a held ETF remains a hard failure.
 - Chinese historical policy and news timestamps may be incomplete or revised.
   Retrieval time cannot substitute for original point-in-time availability.
 - A small number of macro regimes makes conditional results especially easy to

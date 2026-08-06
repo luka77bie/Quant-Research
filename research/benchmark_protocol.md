@@ -18,7 +18,8 @@
 - Eligibility is dynamic from official ETF listing dates; no pre-listing return
   is filled or inferred.
 - Headline runs require every eligible ETF to align to the committed reference
-  calendar without a missing held-session assumption.
+  calendar. Verified no-trade marks must come from the exception ledger and may
+  not coincide with an assumed execution for the selected asset.
 - Excluded ETFs and dates require a pre-specified, logged reason.
 - Strong superiority claims require uncertainty estimates, not a single Sharpe
   ratio comparison.

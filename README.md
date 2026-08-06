@@ -2,8 +2,7 @@
 
 [![CI](https://github.com/luka77bie/Quant-Research/actions/workflows/ci.yml/badge.svg)](https://github.com/luka77bie/Quant-Research/actions/workflows/ci.yml)
 
-Status: data reliability milestone. Strategy results have not yet been
-generated in this repository.
+Status: qualified market-data panel and frozen MOM60 baseline milestone.
 
 This project studies a narrower follow-up question to
 [`narrative-aware-etf-rotation`](https://github.com/luka77bie/narrative-aware-etf-rotation):
@@ -21,7 +20,8 @@ treated as complete.
 
 - Chinese broad-market, sector, style, bond, commodity, and overseas ETFs.
 - Daily adjusted OHLCV data.
-- AKShare as the default source; Yahoo Finance as an optional fallback.
+- Tencent adjusted K-line history as the default source; AKShare and Yahoo
+  Finance as optional fallbacks.
 - A frozen MOM60 monthly Top-3 baseline before narrative features are added.
 - Research outputs only; no automatic trading or investment advice.
 
@@ -30,7 +30,7 @@ treated as complete.
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python3 -m pip install -e '.[akshare,yahoo,dev]'
+python3 -m pip install -e '.[akshare,dev]'
 ```
 
 ## Download market data
@@ -40,7 +40,7 @@ nrea download \
   --universe configs/etf_universe.csv \
   --start 2018-01-01 \
   --end 2026-07-31 \
-  --providers akshare,yahoo
+  --providers tencent,akshare
 ```
 
 The command prints a per-symbol summary and returns a non-zero exit code when
@@ -59,7 +59,7 @@ nrea download \
   --symbols 510500,512100 \
   --start 2018-01-01 \
   --end 2026-07-31 \
-  --providers akshare \
+  --providers tencent \
   --delay 10
 ```
 
@@ -90,7 +90,7 @@ Audit a provider cache without making any network request:
 ```bash
 nrea audit \
   --universe configs/etf_universe.csv \
-  --provider akshare
+  --provider tencent
 ```
 
 The audit re-reads every cached file and checks its checksum, metadata, row
@@ -108,7 +108,8 @@ Build a dynamic-universe sample only after every provider cache is ready:
 nrea build-sample \
   --universe configs/etf_universe.csv \
   --availability-sources configs/etf_availability_sources.csv \
-  --provider akshare \
+  --calendar-exceptions configs/etf_calendar_exceptions.csv \
+  --provider tencent \
   --start 2018-01-01 \
   --end 2026-07-31 \
   --reference-symbol 510300 \
@@ -116,8 +117,20 @@ nrea build-sample \
 ```
 
 This command checks the configured dates against their source ledger and aligns
-each ETF, after its own listing date, to `510300` trading sessions. A single
-missing or extra session blocks `common_sample.csv`; no value is filled.
+each ETF, after its own listing date, to `510300` trading sessions. Unverified
+missing or extra sessions block `common_sample.csv`. A dual-source verified
+no-trade date receives an explicit zero-volume, non-tradable mark at the prior
+close; it is never silently filled.
+
+Compare isolated provider caches before approving a fallback source:
+
+```bash
+nrea compare-providers \
+  --left-provider akshare \
+  --right-provider tencent \
+  --symbols 510300 \
+  --output data/manifests/akshare_tencent_comparison.csv
+```
 
 See [`research/data_source_policy.md`](research/data_source_policy.md) for
 retry, fallback, and cross-provider rules.
@@ -155,12 +168,11 @@ Yahoo Finance, or any live market-data endpoint.
 
 ## Research status
 
-ETF listing dates are now verified against official exchange lists, and the
-repository contains a strict dynamic-universe sample builder plus the
-offline-tested MOM60 engine. The active blocker is provider availability: the
-full `510300` cache succeeded, but the subsequent Eastmoney batch was rejected.
-No narrative model is eligible before all 18 single-provider caches and the
-common-sample audit pass.
+ETF listing dates are verified against official exchange lists. The Tencent
+provider produced all 18 isolated caches, the common-sample audit passed, and
+the frozen MOM60 baseline now runs on the qualified dynamic universe. Narrative
+features remain blocked until their own point-in-time archive passes the
+research contract.
 
 ## License
 

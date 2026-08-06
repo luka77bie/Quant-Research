@@ -52,4 +52,16 @@ ETF eligibility begins on the official secondary-market listing date recorded
 in the source ledger. The common sample uses `510300` trading dates as its
 reference calendar. Each ETF is checked only from the later of the research
 start and its own listing date. Missing or non-reference observations block the
-sample; they are never forward-filled or treated as zero returns.
+sample unless a later committed decision explicitly qualifies a no-trade date.
+
+## 2026-08-06: Qualify Tencent and mark verified no-trade dates
+
+Tencent adjusted ETF history replaces Eastmoney as the default convenience
+source after a full-history `510300` overlap showed identical dates, return
+correlation above 0.999999, and matching volume units. Requests use calendar-year
+chunks and remain isolated by provider.
+
+Eight eligible symbol-dates are absent from both Tencent and Sina histories.
+They are committed in `configs/etf_calendar_exceptions.csv`. The panel records
+each at the prior close with zero volume, `observation_status=verified_no_trade`,
+and `is_tradable=false`. Any unlisted missing date still blocks the sample.

@@ -1,0 +1,9 @@
+symbol,date,reason,evidence_left_url,evidence_right_url,verified_at
+512100,2022-09-02,no_secondary_market_trade,https://web.ifzq.gtimg.cn/appstock/app/fqkline/get,https://finance.sina.com.cn/realstock/company/sh512100/hisdata_klc2/klc_kl.js,2026-08-06
+159915,2021-02-08,temporary_suspension,https://web.ifzq.gtimg.cn/appstock/app/fqkline/get,https://finance.sina.com.cn/realstock/company/sz159915/hisdata_klc2/klc_kl.js,2026-08-06
+512690,2021-05-14,no_secondary_market_trade,https://web.ifzq.gtimg.cn/appstock/app/fqkline/get,https://finance.sina.com.cn/realstock/company/sh512690/hisdata_klc2/klc_kl.js,2026-08-06
+512480,2021-03-26,no_secondary_market_trade,https://web.ifzq.gtimg.cn/appstock/app/fqkline/get,https://finance.sina.com.cn/realstock/company/sh512480/hisdata_klc2/klc_kl.js,2026-08-06
+512010,2021-06-25,no_secondary_market_trade,https://web.ifzq.gtimg.cn/appstock/app/fqkline/get,https://finance.sina.com.cn/realstock/company/sh512010/hisdata_klc2/klc_kl.js,2026-08-06
+511260,2018-08-17,no_secondary_market_trade,https://web.ifzq.gtimg.cn/appstock/app/fqkline/get,https://finance.sina.com.cn/realstock/company/sh511260/hisdata_klc2/klc_kl.js,2026-08-06
+513100,2022-01-13,no_secondary_market_trade,https://web.ifzq.gtimg.cn/appstock/app/fqkline/get,https://finance.sina.com.cn/realstock/company/sh513100/hisdata_klc2/klc_kl.js,2026-08-06
+513500,2022-03-29,no_secondary_market_trade,https://web.ifzq.gtimg.cn/appstock/app/fqkline/get,https://finance.sina.com.cn/realstock/company/sh513500/hisdata_klc2/klc_kl.js,2026-08-06

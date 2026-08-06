@@ -26,7 +26,9 @@ evidence, not proof that a conditional narrative model will work.
 - Eligibility: official listing date has passed and 60 valid observations are
   available on the common reference calendar.
 - Calendar: `510300` defines panel trading dates; another ETF enters only after
-  its listing date and any missing eligible session blocks the sample.
+  its listing date. An unverified missing session blocks the sample. A committed
+  dual-source no-trade exception receives an explicit non-tradable prior-close
+  mark and zero volume.
 
 Baseline definitions may only change to fix a documented correctness bug.
 
