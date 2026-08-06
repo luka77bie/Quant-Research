@@ -238,6 +238,14 @@ nrea narrative-timing \
   --output-dir outputs/narrative_timing
 ```
 
+Audit all frozen numeric features before reading market relationships:
+
+```bash
+nrea narrative-diagnostics \
+  --features outputs/policy_features/policy_features.csv \
+  --output-dir outputs/policy_feature_diagnostics
+```
+
 The downloader caches each PDF independently, retries failures, rejects
 unapproved domains and non-PDF responses, and locks reviewed checksums in the
 catalog. All 32 quarterly documents from 2018 through 2025 are archived and
@@ -268,7 +276,8 @@ matched snapshot. Strict point-in-time modeling remains blocked;
 publication-time text diagnostics may proceed only under the qualified
 exploratory protocol. The frozen diagnostics use no return data and create no
 composite score. The 24-hour, 48-hour, and next-month session joins pass with no
-lookahead violations.
+lookahead violations. Feature stability diagnostics pass with only expected
+first-observation missingness; redundant representations remain audit-only.
 
 ## License
 

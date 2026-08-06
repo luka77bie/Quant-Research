@@ -31,6 +31,7 @@ from narrative_regime.narrative.archive import (
     audit_archive,
     coverage_summary,
 )
+from narrative_regime.narrative.diagnostics import audit_policy_features
 from narrative_regime.narrative.extraction import (
     extract_catalog_text,
     extraction_summary,
@@ -172,6 +173,13 @@ def build_parser() -> argparse.ArgumentParser:
     narrative_timing.add_argument("--prices", type=Path, required=True)
     narrative_timing.add_argument("--reference-symbol", default="510300")
     narrative_timing.add_argument("--output-dir", type=Path, required=True)
+
+    narrative_diagnostics = subparsers.add_parser(
+        "narrative-diagnostics",
+        help="audit frozen policy-feature stability without market data",
+    )
+    narrative_diagnostics.add_argument("--features", type=Path, required=True)
+    narrative_diagnostics.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -884,6 +892,60 @@ def run_narrative_timing(args: argparse.Namespace) -> int:
     return 0 if result.summary["timing_gate"] == "pass" else 1
 
 
+def run_narrative_diagnostics(args: argparse.Namespace) -> int:
+    features = pd.read_csv(args.features)
+    result = audit_policy_features(features)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    output_frames = {
+        "feature_distribution.csv": result.distribution,
+        "feature_missingness.csv": result.missingness,
+        "feature_persistence.csv": result.persistence,
+        "feature_pearson_correlation.csv": result.pearson,
+        "feature_spearman_correlation.csv": result.spearman,
+        "feature_high_correlation_pairs.csv": result.high_correlation_pairs,
+    }
+    output_paths = []
+    for filename, frame in output_frames.items():
+        path = args.output_dir / filename
+        frame.to_csv(path, index=filename.endswith("correlation.csv"))
+        output_paths.append(path)
+    summary_path = args.output_dir / "feature_diagnostic_summary.json"
+    summary_path.write_text(
+        json.dumps(result.summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    output_paths.append(summary_path)
+    manifest = build_run_manifest(
+        input_path=args.features,
+        command=[
+            "nrea",
+            "narrative-diagnostics",
+            "--features",
+            str(args.features),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "correlations": ["pearson", "spearman"],
+            "high_absolute_correlation_threshold": 0.90,
+            "market_data_used": False,
+            "return_data_used": False,
+            "feature_selection_performed": False,
+            "research_use": "exploratory_only",
+        },
+        outputs=output_paths,
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "feature_diagnostic_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(result.distribution.to_string(index=False))
+    print(json.dumps(result.summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if result.summary["diagnostic_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -910,6 +972,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_narrative_features(args)
     if args.command == "narrative-timing":
         return run_narrative_timing(args)
+    if args.command == "narrative-diagnostics":
+        return run_narrative_diagnostics(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

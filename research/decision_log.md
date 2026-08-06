@@ -159,3 +159,21 @@ effective timestamp. All 96 report-protocol activations and 6,243 daily as-of
 rows pass with zero lookahead violations. Twenty of 32 reports share the same
 24-hour and 48-hour activation date because non-trading intervals absorb the
 extra delay. This protocol is frozen before examining market relationships.
+
+## 2026-08-06: Resolve measurement redundancy before returns
+
+All 19 numeric policy features pass missingness and finite-value checks. The
+eight missing observations are exactly the pre-specified first-quarter values
+for similarity, novelty, and quarter-over-quarter changes. No feature has zero
+variance.
+
+Six pairs have absolute Spearman correlation of at least 0.90. Five are raw
+term counts paired with their length-normalized densities. The sixth is the
+identity `section_novelty = 1 - prior_section_similarity`. Before reading any
+forward return, density measures and similarity are assigned primary roles;
+raw counts and novelty remain audit-only. This is measurement de-duplication,
+not performance-based feature selection.
+
+The market relationship protocol is frozen at 5, 20, and 60 reference sessions
+for all three timing rules. It prohibits choosing a feature, delay, or window
+from observed results and prohibits portfolio construction at this stage.

@@ -28,6 +28,9 @@
 - Three timing protocols map all 32 reports to the audited `510300` calendar:
   96 activation records, 6,243 protocol-session rows, and zero lookahead
   violations. No price or return values enter the timing stage.
+- Stability diagnostics cover all 19 numeric policy features. All eight missing
+  observations are expected first-quarter values; there are no unexpected
+  missing values, infinities, or zero-variance features.
 
 ## Previous Provider Failure
 

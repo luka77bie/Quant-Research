@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "status": "frozen_before_market_relationships",
+  "timing_protocols": [
+    "delay_24h",
+    "delay_48h",
+    "next_month"
+  ],
+  "forward_windows_reference_sessions": [
+    5,
+    20,
+    60
+  ],
+  "return_convention": {
+    "provider": "tencent",
+    "adjustment": "qfq",
+    "price_field": "close",
+    "start": "activation_session_close",
+    "end": "close_n_reference_sessions_after_activation",
+    "formula": "end_close / start_close - 1"
+  },
+  "eligibility": {
+    "listing_date_passed": true,
+    "activation_and_end_points_tradable": true,
+    "unverified_missing_sessions_allowed": false,
+    "minimum_prior_observations_for_controls": 60
+  },
+  "descriptive_outcomes": [
+    "per_symbol_forward_return",
+    "equal_weight_asset_group_forward_return",
+    "cross_sectional_return_dispersion"
+  ],
+  "controls": [
+    "lagged_60_session_momentum",
+    "lagged_20_session_realized_volatility",
+    "asset_group"
+  ],
+  "feature_roles": {
+    "primary_levels": [
+      "term_density_per_1000_accommodation",
+      "term_density_per_1000_restraint",
+      "term_density_per_1000_risk_control",
+      "term_density_per_1000_fx_stability",
+      "term_density_per_1000_structural_support",
+      "prior_section_similarity"
+    ],
+    "primary_changes": [
+      "term_density_per_1000_accommodation_change_qoq",
+      "term_density_per_1000_restraint_change_qoq",
+      "term_density_per_1000_risk_control_change_qoq",
+      "term_density_per_1000_fx_stability_change_qoq",
+      "term_density_per_1000_structural_support_change_qoq"
+    ],
+    "measurement_controls": [
+      "section_character_count",
+      "section_character_change_qoq"
+    ],
+    "audit_only_redundant": [
+      "term_count_accommodation",
+      "term_count_restraint",
+      "term_count_risk_control",
+      "term_count_fx_stability",
+      "term_count_structural_support",
+      "section_novelty"
+    ]
+  },
+  "reporting_rules": {
+    "report_every_frozen_feature": true,
+    "report_every_timing_protocol": true,
+    "report_every_forward_window": true,
+    "select_delay_from_results": false,
+    "select_feature_from_results": false,
+    "portfolio_construction_allowed": false,
+    "strict_point_in_time_claim_allowed": false
+  }
+}

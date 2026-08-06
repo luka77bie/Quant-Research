@@ -32,3 +32,11 @@
 4. MOM60 plus macro and narrative interaction.
 5. Combined model with shuffled narrative labels.
 6. Combined model with additional publication and execution delays.
+
+## Pre-model descriptive protocol
+
+Before any combined model, `configs/market_relation_protocol.json` freezes 5,
+20, and 60 reference-session forward windows for all three narrative timing
+rules. Close-to-close Tencent qfq outcomes begin at the activation-session close.
+Every frozen primary feature, delay, and horizon must be reported; this stage
+cannot choose a preferred specification or construct a portfolio.
