@@ -35,6 +35,10 @@ from narrative_regime.narrative.extraction import (
     extract_catalog_text,
     extraction_summary,
 )
+from narrative_regime.narrative.sections import (
+    parse_policy_sections,
+    section_summary,
+)
 from narrative_regime.provenance import build_run_manifest
 
 
@@ -135,6 +139,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--maximum-replacement-ratio", type=float, default=0.001
     )
     narrative_extract.add_argument("--minimum-cjk-ratio", type=float, default=0.50)
+
+    narrative_sections = subparsers.add_parser(
+        "narrative-sections",
+        help="parse and quality-audit forward-looking policy sections",
+    )
+    narrative_sections.add_argument("--catalog", type=Path, required=True)
+    narrative_sections.add_argument("--sources", type=Path, required=True)
+    narrative_sections.add_argument("--root", type=Path, default=Path.cwd())
+    narrative_sections.add_argument("--output-dir", type=Path, required=True)
+    narrative_sections.add_argument("--minimum-characters", type=int, default=1_500)
+    narrative_sections.add_argument("--maximum-characters", type=int, default=6_000)
+    narrative_sections.add_argument("--minimum-cjk-ratio", type=float, default=0.60)
     return parser
 
 
@@ -657,6 +673,79 @@ def run_narrative_extract(args: argparse.Namespace) -> int:
     return 0 if summary["extraction_gate"] == "pass" else 1
 
 
+def run_narrative_sections(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    sources = pd.read_csv(args.sources, dtype=str, keep_default_na=False)
+    results = parse_policy_sections(
+        args.root,
+        catalog,
+        sources,
+        minimum_characters=args.minimum_characters,
+        maximum_characters=args.maximum_characters,
+        minimum_cjk_ratio=args.minimum_cjk_ratio,
+    )
+    summary = section_summary(results)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    audit_path = args.output_dir / "narrative_section_audit.csv"
+    summary_path = args.output_dir / "narrative_section_summary.json"
+    results.to_csv(audit_path, index=False)
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    text_inputs = []
+    section_outputs = []
+    for row in results.to_dict("records"):
+        text_path = args.root / str(row["section_path"])
+        source_path = (
+            args.root
+            / "data"
+            / "processed"
+            / "narrative_text"
+            / f"{row['record_id']}.txt"
+        )
+        text_inputs.extend([source_path, source_path.with_suffix(".meta.json")])
+        section_outputs.extend([text_path, text_path.with_suffix(".meta.json")])
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        additional_inputs=[args.sources, *text_inputs],
+        command=[
+            "nrea",
+            "narrative-sections",
+            "--catalog",
+            str(args.catalog),
+            "--sources",
+            str(args.sources),
+            "--root",
+            str(args.root),
+            "--output-dir",
+            str(args.output_dir),
+            "--minimum-characters",
+            str(args.minimum_characters),
+            "--maximum-characters",
+            str(args.maximum_characters),
+            "--minimum-cjk-ratio",
+            str(args.minimum_cjk_ratio),
+        ],
+        parameters={
+            "minimum_characters": args.minimum_characters,
+            "maximum_characters": args.maximum_characters,
+            "minimum_cjk_ratio": args.minimum_cjk_ratio,
+            "minimum_required_ready_records": 30,
+            "research_use": "exploratory_only",
+        },
+        outputs=[*section_outputs, audit_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "narrative_section_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(results.to_string(index=False))
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if summary["section_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -677,6 +766,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_narrative_audit(args)
     if args.command == "narrative-extract":
         return run_narrative_extract(args)
+    if args.command == "narrative-sections":
+        return run_narrative_sections(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

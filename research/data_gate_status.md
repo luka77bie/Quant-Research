@@ -19,6 +19,9 @@
 - Deterministic PDF extraction passes for all 32 reports: 1,901 pages and
   1,323,999 non-whitespace characters, with no empty pages or replacement
   characters.
+- The deterministic forward-looking policy-section parser passes for all 32
+  reports, producing 88,768 non-whitespace characters with no duplicate section
+  hashes.
 
 ## Previous Provider Failure
 

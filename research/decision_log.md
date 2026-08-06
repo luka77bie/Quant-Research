@@ -119,3 +119,15 @@ proceed as exploratory publication-time reconstruction. LLM features, parameter
 search, portfolio optimization, and strict historical-performance claims remain
 blocked until either matching historical evidence is found or the research
 contract is explicitly downgraded with delay sensitivities and qualified claims.
+
+## 2026-08-06: Pass the deterministic policy-section gate
+
+One parser recognizes the two observed official headings, ignores dotted table
+of contents entries, and selects the final exact heading when a PDF exposes both
+a contents copy and the body heading. It isolates the forward-looking policy
+section in all 32 reports, exceeding the pre-specified 30-report threshold.
+
+The parsed sections contain 88,768 non-whitespace characters in total. Individual
+sections range from 2,080 to 3,829 characters, CJK ratios range from 90.28% to
+91.89%, and no section hashes are duplicated. This passes the structural parser
+gate but does not validate semantics, historical byte identity, or predictiveness.

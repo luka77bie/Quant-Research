@@ -209,12 +209,22 @@ nrea narrative-extract \
   --output-dir outputs/narrative_text_full
 ```
 
+Parse and audit the forward-looking policy section:
+
+```bash
+nrea narrative-sections \
+  --catalog configs/pboc_mpr_catalog.csv \
+  --sources configs/narrative_sources.csv \
+  --output-dir outputs/narrative_sections_full
+```
+
 The downloader caches each PDF independently, retries failures, rejects
 unapproved domains and non-PDF responses, and locks reviewed checksums in the
 catalog. All 32 quarterly documents from 2018 through 2025 are archived and
-extract cleanly. All remain provisional because no matching contemporaneous
-snapshot has been established, so the strict modeling audit intentionally exits
-unsuccessfully. The evidence, permitted exploratory use, and stop rules are in
+extract cleanly, and the policy-section parser passes for 32 of 32 reports. All
+remain provisional because no matching contemporaneous snapshot has been
+established, so the strict modeling audit intentionally exits unsuccessfully.
+The evidence, permitted exploratory use, and stop rules are in
 [`research/pboc_archive_and_text_report.md`](research/pboc_archive_and_text_report.md).
 
 ## Quality checks
@@ -233,9 +243,10 @@ ETF listing dates are verified against official exchange lists. The Tencent
 provider produced all 18 isolated caches, the common-sample audit passed, and
 the frozen MOM60 and market-attention control run on the qualified dynamic
 universe. The PBOC archive covers all 32 quarters and deterministic extraction
-passes, but none of the documents has a historically matched snapshot. Strict
-point-in-time modeling remains blocked; publication-time text diagnostics may
-proceed only under the qualified exploratory protocol.
+and policy-section parsing pass, but none of the documents has a historically
+matched snapshot. Strict point-in-time modeling remains blocked;
+publication-time text diagnostics may proceed only under the qualified
+exploratory protocol.
 
 ## License
 

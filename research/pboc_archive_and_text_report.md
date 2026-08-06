@@ -66,7 +66,8 @@ All outputs are marked `exploratory_only`.
 ## Permitted Next Stage
 
 1. Build one deterministic parser for the forward-looking policy section and
-   require successful isolation in at least 30 of 32 reports.
+   require successful isolation in at least 30 of 32 reports. This gate passed
+   for all 32 reports; see `research/pboc_policy_section_report.md`.
 2. Freeze a transparent non-LLM baseline: document length, policy-term counts,
    change from the previous quarter, and cosine similarity to the prior report.
 3. Define joins using `available_at` and test 24-hour, 48-hour, and next-month
