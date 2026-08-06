@@ -32,6 +32,10 @@
 - PDF text extraction passing structural quality thresholds does not establish
   semantic fidelity for every table, reading order, heading, or policy phrase.
   Section-level validation is required before constructing features.
+- Daily market data cannot establish intraday execution. Narrative timing uses
+  the first audited 09:30 reference-session open on or after each effective
+  timestamp; holidays can create long and uneven calendar delays. This is a
+  conservative information-availability convention, not an executable fill.
 - A small number of macro regimes makes conditional results especially easy to
   overfit. Crisis case studies are interpretation, not independent validation.
 - Tencent does not expose transaction value in the qualified endpoint. The

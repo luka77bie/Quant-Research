@@ -54,7 +54,8 @@ Prior-section cosine similarity ranges from 0.8257 to 0.9478 and averages
 ## Next Gate
 
 1. Freeze 24-hour, 48-hour, and next-month timing joins before reading market
-   relationships.
+   relationships. This gate passed with zero lookahead violations; see
+   `research/narrative_timing_protocol_report.md`.
 2. Produce descriptive feature stability, missingness, and correlation audits;
    do not select features using future returns.
 3. Evaluate every frozen category and the similarity control, including sparse

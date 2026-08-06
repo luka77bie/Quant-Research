@@ -145,3 +145,17 @@ Three frozen terms have zero counts across the sample: `降息`, `防止资金�
 and `房住不炒`. They remain in the audit rather than being replaced after
 observing the corpus. This baseline is a measurement diagnostic, not an alpha
 signal.
+
+## 2026-08-06: Freeze three session-level publication delays
+
+Narrative features are mapped to the audited `510300` reference calendar using
+China Standard Time and a 09:30 session open. The primary 24-hour protocol uses
+the catalog-derived `available_at`; the 48-hour sensitivity uses publication
+plus 48 hours; the next-month sensitivity uses the first reference session in
+the calendar month after local `available_at`.
+
+Each protocol activates a report only at the first session open on or after its
+effective timestamp. All 96 report-protocol activations and 6,243 daily as-of
+rows pass with zero lookahead violations. Twenty of 32 reports share the same
+24-hour and 48-hour activation date because non-trading intervals absorb the
+extra delay. This protocol is frozen before examining market relationships.

@@ -25,6 +25,9 @@
 - The frozen non-LLM diagnostic table covers all 32 quarters with 25 literal
   policy terms in five categories and 31 prior-quarter text comparisons. It
   reads no return data and creates no composite score.
+- Three timing protocols map all 32 reports to the audited `510300` calendar:
+  96 activation records, 6,243 protocol-session rows, and zero lookahead
+  violations. No price or return values enter the timing stage.
 
 ## Previous Provider Failure
 

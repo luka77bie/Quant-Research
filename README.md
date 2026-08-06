@@ -228,6 +228,16 @@ nrea narrative-features \
   --output-dir outputs/policy_features
 ```
 
+Freeze and audit the three market-session timing protocols:
+
+```bash
+nrea narrative-timing \
+  --features outputs/policy_features/policy_features.csv \
+  --prices data/processed/common_sample_tencent/common_sample.csv \
+  --reference-symbol 510300 \
+  --output-dir outputs/narrative_timing
+```
+
 The downloader caches each PDF independently, retries failures, rejects
 unapproved domains and non-PDF responses, and locks reviewed checksums in the
 catalog. All 32 quarterly documents from 2018 through 2025 are archived and
@@ -257,7 +267,8 @@ and policy-section parsing pass, but none of the documents has a historically
 matched snapshot. Strict point-in-time modeling remains blocked;
 publication-time text diagnostics may proceed only under the qualified
 exploratory protocol. The frozen diagnostics use no return data and create no
-composite score.
+composite score. The 24-hour, 48-hour, and next-month session joins pass with no
+lookahead violations.
 
 ## License
 

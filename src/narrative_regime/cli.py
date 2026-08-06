@@ -40,6 +40,7 @@ from narrative_regime.narrative.sections import (
     parse_policy_sections,
     section_summary,
 )
+from narrative_regime.narrative.timing import build_timing_joins
 from narrative_regime.provenance import build_run_manifest
 
 
@@ -162,6 +163,15 @@ def build_parser() -> argparse.ArgumentParser:
     narrative_features.add_argument("--lexicon", type=Path, required=True)
     narrative_features.add_argument("--root", type=Path, default=Path.cwd())
     narrative_features.add_argument("--output-dir", type=Path, required=True)
+
+    narrative_timing = subparsers.add_parser(
+        "narrative-timing",
+        help="map frozen narrative features to delayed market sessions",
+    )
+    narrative_timing.add_argument("--features", type=Path, required=True)
+    narrative_timing.add_argument("--prices", type=Path, required=True)
+    narrative_timing.add_argument("--reference-symbol", default="510300")
+    narrative_timing.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -815,6 +825,65 @@ def run_narrative_features(args: argparse.Namespace) -> int:
     return 0 if result.summary["feature_gate"] == "pass" else 1
 
 
+def run_narrative_timing(args: argparse.Namespace) -> int:
+    features = pd.read_csv(args.features, dtype={"record_id": str})
+    market_calendar = pd.read_csv(
+        args.prices,
+        usecols=["date", "symbol"],
+        dtype={"symbol": str},
+    )
+    result = build_timing_joins(
+        features,
+        market_calendar,
+        reference_symbol=args.reference_symbol,
+    )
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    schedule_path = args.output_dir / "narrative_activation_schedule.csv"
+    calendar_path = args.output_dir / "narrative_feature_calendar.csv"
+    summary_path = args.output_dir / "narrative_timing_summary.json"
+    result.schedule.to_csv(schedule_path, index=False)
+    result.calendar.to_csv(calendar_path, index=False)
+    summary_path.write_text(
+        json.dumps(result.summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    manifest = build_run_manifest(
+        input_path=args.features,
+        additional_inputs=[args.prices],
+        command=[
+            "nrea",
+            "narrative-timing",
+            "--features",
+            str(args.features),
+            "--prices",
+            str(args.prices),
+            "--reference-symbol",
+            args.reference_symbol,
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "protocols": ["delay_24h", "delay_48h", "next_month"],
+            "market_timezone": "Asia/Shanghai",
+            "session_open": "09:30",
+            "reference_symbol": args.reference_symbol,
+            "price_values_used": False,
+            "return_data_used": False,
+            "research_use": "exploratory_only",
+        },
+        outputs=[schedule_path, calendar_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "narrative_timing_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(result.schedule.to_string(index=False))
+    print(json.dumps(result.summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if result.summary["timing_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -839,6 +908,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_narrative_sections(args)
     if args.command == "narrative-features":
         return run_narrative_features(args)
+    if args.command == "narrative-timing":
+        return run_narrative_timing(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 
