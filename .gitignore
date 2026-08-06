@@ -10,5 +10,6 @@ data/processed/
 data/manifests/*.jsonl
 data/manifests/*.csv
 outputs/
+artifacts/
 dist/
 *.egg-info/

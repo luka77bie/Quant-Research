@@ -50,3 +50,7 @@ Yahoo rows. Before any cross-provider merge, compare an overlapping period for:
 - timezone and trading-date alignment.
 
 The comparison and merge decision must be recorded in the decision log.
+
+Sina's unadjusted ETF history is not a substitute for the frozen adjusted-close
+series. Its current adjustment payload must not be used until the factor and
+cash-adjustment formula is verified against documented corporate-action cases.

@@ -12,6 +12,10 @@ from narrative_regime.baseline.momentum import run_momentum_baseline
 from narrative_regime.data.audit import audit_provider_cache
 from narrative_regime.data.downloader import DownloadManager
 from narrative_regime.data.models import FetchRequest
+from narrative_regime.data.panel import (
+    build_common_sample,
+    validate_availability_metadata,
+)
 from narrative_regime.data.providers import build_providers
 from narrative_regime.provenance import build_run_manifest
 
@@ -25,6 +29,10 @@ def build_parser() -> argparse.ArgumentParser:
     download.add_argument("--start", type=date.fromisoformat, required=True)
     download.add_argument("--end", type=date.fromisoformat, required=True)
     download.add_argument("--providers", default="akshare,yahoo")
+    download.add_argument(
+        "--symbols",
+        help="comma-separated universe symbols to resume selectively",
+    )
     download.add_argument("--attempts", type=int, default=3)
     download.add_argument("--delay", type=float, default=1.0)
     download.add_argument("--max-consecutive-failures", type=int, default=3)
@@ -37,6 +45,18 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--root", type=Path, default=Path.cwd())
     audit.add_argument("--output", type=Path)
 
+    sample = subparsers.add_parser(
+        "build-sample", help="build an audited single-provider common sample"
+    )
+    sample.add_argument("--universe", type=Path, required=True)
+    sample.add_argument("--availability-sources", type=Path, required=True)
+    sample.add_argument("--provider", required=True)
+    sample.add_argument("--start", type=date.fromisoformat, required=True)
+    sample.add_argument("--end", type=date.fromisoformat, required=True)
+    sample.add_argument("--reference-symbol", default="510300")
+    sample.add_argument("--root", type=Path, default=Path.cwd())
+    sample.add_argument("--output-dir", type=Path, required=True)
+
     baseline = subparsers.add_parser("baseline", help="run frozen MOM60 baseline")
     baseline.add_argument("--prices", type=Path, required=True)
     baseline.add_argument("--output-dir", type=Path, required=True)
@@ -48,6 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run_download(args: argparse.Namespace) -> int:
     universe = _read_universe(args.universe)
+    universe = _select_universe_symbols(universe, args.symbols)
 
     provider_names = [item.strip() for item in args.providers.split(",") if item]
     manager = DownloadManager(
@@ -116,6 +137,30 @@ def _read_universe(path: Path) -> pd.DataFrame:
     return universe
 
 
+def _select_universe_symbols(
+    universe: pd.DataFrame,
+    symbols_argument: str | None,
+) -> pd.DataFrame:
+    if symbols_argument is None:
+        return universe
+
+    requested = [item.strip() for item in symbols_argument.split(",") if item.strip()]
+    if not requested:
+        raise ValueError("--symbols must contain at least one symbol")
+    if len(requested) != len(set(requested)):
+        raise ValueError("--symbols contains duplicate symbols")
+
+    universe_symbols = set(universe["symbol"].astype(str))
+    unknown = sorted(set(requested) - universe_symbols)
+    if unknown:
+        raise ValueError(f"--symbols not found in universe: {', '.join(unknown)}")
+
+    requested_set = set(requested)
+    return universe.loc[
+        universe["symbol"].astype(str).isin(requested_set)
+    ].reset_index(drop=True)
+
+
 def run_audit(args: argparse.Namespace) -> int:
     universe = _read_universe(args.universe)
     report = audit_provider_cache(
@@ -132,6 +177,81 @@ def run_audit(args: argparse.Namespace) -> int:
     print(" ".join(f"{key}={value}" for key, value in sorted(counts.items())))
     print(f"report={output}")
     return 0 if report["audit_status"].eq("ready").all() else 1
+
+
+def run_build_sample(args: argparse.Namespace) -> int:
+    universe = _read_universe(args.universe)
+    sources = pd.read_csv(args.availability_sources, dtype={"symbol": str})
+    validate_availability_metadata(universe, sources)
+    result = build_common_sample(
+        root=args.root,
+        provider=args.provider,
+        universe=universe,
+        start=args.start,
+        end=args.end,
+        reference_symbol=args.reference_symbol,
+    )
+
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    panel_audit_path = args.output_dir / "common_sample_audit.csv"
+    cache_audit_path = args.output_dir / "common_sample_cache_audit.csv"
+    sample_path = args.output_dir / "common_sample.csv"
+    result.panel_audit.to_csv(panel_audit_path, index=False)
+    result.cache_audit.to_csv(cache_audit_path, index=False)
+    outputs = [panel_audit_path, cache_audit_path]
+    if result.ready:
+        result.sample.to_csv(sample_path, index=False, date_format="%Y-%m-%d")
+        outputs.append(sample_path)
+
+    cache_inputs = []
+    for symbol in universe["symbol"].astype(str):
+        cache_path = args.root / "data" / "raw" / args.provider / f"{symbol}.csv"
+        metadata_path = cache_path.with_suffix(".meta.json")
+        cache_inputs.extend(
+            path for path in (cache_path, metadata_path) if path.exists()
+        )
+    command = [
+        "nrea",
+        "build-sample",
+        "--universe",
+        str(args.universe),
+        "--availability-sources",
+        str(args.availability_sources),
+        "--provider",
+        args.provider,
+        "--start",
+        args.start.isoformat(),
+        "--end",
+        args.end.isoformat(),
+        "--reference-symbol",
+        args.reference_symbol,
+        "--root",
+        str(args.root),
+        "--output-dir",
+        str(args.output_dir),
+    ]
+    manifest = build_run_manifest(
+        input_path=args.universe,
+        additional_inputs=[args.availability_sources, *cache_inputs],
+        command=command,
+        parameters={
+            "provider": args.provider,
+            "start": args.start.isoformat(),
+            "end": args.end.isoformat(),
+            "reference_symbol": args.reference_symbol,
+            "outcome": "ready" if result.ready else "blocked",
+        },
+        outputs=outputs,
+        repository=Path.cwd(),
+    )
+    (args.output_dir / "common_sample_run_manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    counts = result.panel_audit["status"].value_counts().to_dict()
+    print(" ".join(f"{key}={value}" for key, value in sorted(counts.items())))
+    print(f"output_dir={args.output_dir}")
+    return 0 if result.ready else 1
 
 
 def run_baseline(args: argparse.Namespace) -> int:
@@ -192,6 +312,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_download(args)
     if args.command == "audit":
         return run_audit(args)
+    if args.command == "build-sample":
+        return run_build_sample(args)
     if args.command == "baseline":
         return run_baseline(args)
     raise AssertionError(f"unhandled command: {args.command}")

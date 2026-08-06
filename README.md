@@ -11,7 +11,7 @@ This project studies a narrower follow-up question to
 > Under which macro, uncertainty, and liquidity regimes does narrative
 > information add incremental value to a frozen ETF momentum baseline?
 
-The first milestone is data reliability. Market-data requests are resumable,
+The current milestone is data qualification. Market-data requests are resumable,
 cached per provider and symbol, and recorded in an append-only provenance
 manifest. One failed symbol does not invalidate a complete batch, and a
 provider that returns only part of the requested history is never silently
@@ -50,6 +50,22 @@ identical run. Incomplete provider responses are preserved for diagnosis while
 the downloader tries the next provider. Use `--refresh` to request all symbols
 again.
 
+Resume only selected symbols after a provider cooldown without editing the
+universe file:
+
+```bash
+nrea download \
+  --universe configs/etf_universe.csv \
+  --symbols 510500,512100 \
+  --start 2018-01-01 \
+  --end 2026-07-31 \
+  --providers akshare \
+  --delay 10
+```
+
+Unknown or duplicate values passed to `--symbols` stop before any network
+request. Selected symbols retain the universe file's deterministic order.
+
 After three consecutive incomplete symbols, the default batch circuit breaker
 marks the unrequested remainder as `skipped`. This prevents a provider-wide
 outage from triggering requests for the entire universe. Rerun the same command
@@ -81,11 +97,27 @@ The audit re-reads every cached file and checks its checksum, metadata, row
 count, observed boundaries, OHLC validity, and coverage. It exits unsuccessfully
 unless every requested symbol is marked `ready`.
 
-If an ETF was listed after the requested research start, enter its verified
-first available date in the universe file's `available_from` column. Until
-then, the downloader intentionally reports the shorter history as `partial`.
-This prevents launch-date truncation from being silently confused with full
-coverage.
+Official listing dates are committed in `configs/etf_availability_sources.csv`
+and mirrored into the universe file's `available_from` column. The downloader
+uses those dates for post-2018 listings instead of incorrectly treating their
+pre-listing period as missing history.
+
+Build a dynamic-universe sample only after every provider cache is ready:
+
+```bash
+nrea build-sample \
+  --universe configs/etf_universe.csv \
+  --availability-sources configs/etf_availability_sources.csv \
+  --provider akshare \
+  --start 2018-01-01 \
+  --end 2026-07-31 \
+  --reference-symbol 510300 \
+  --output-dir data/processed/common_sample
+```
+
+This command checks the configured dates against their source ledger and aligns
+each ETF, after its own listing date, to `510300` trading sessions. A single
+missing or extra session blocks `common_sample.csv`; no value is filled.
 
 See [`research/data_source_policy.md`](research/data_source_policy.md) for
 retry, fallback, and cross-provider rules.
@@ -100,7 +132,7 @@ The baseline command accepts a long-form adjusted-close file with `date`,
 ```bash
 nrea baseline \
   --prices data/processed/common_sample.csv \
-  --output-dir artifacts/mom60
+  --output-dir outputs/mom60
 ```
 
 It writes daily returns, dated Top-3 selections, and summary metrics. Signals
@@ -123,11 +155,12 @@ Yahoo Finance, or any live market-data endpoint.
 
 ## Research status
 
-The repository currently establishes research contracts, provider isolation,
-resumable downloads, cache audits, coverage validation, provenance manifests,
-and an offline-tested MOM60 baseline engine. The next gate is to verify ETF
-availability dates and run that baseline on a fully audited common sample. No
-narrative model is eligible for implementation before that gate passes.
+ETF listing dates are now verified against official exchange lists, and the
+repository contains a strict dynamic-universe sample builder plus the
+offline-tested MOM60 engine. The active blocker is provider availability: the
+full `510300` cache succeeded, but the subsequent Eastmoney batch was rejected.
+No narrative model is eligible before all 18 single-provider caches and the
+common-sample audit pass.
 
 ## License
 

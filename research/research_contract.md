@@ -23,6 +23,10 @@ evidence, not proof that a conditional narrative model will work.
   close-to-close return on that date is used as a documented daily-data
   approximation to next-session execution.
 - Costs: 10 basis points multiplied by one-way turnover.
+- Eligibility: official listing date has passed and 60 valid observations are
+  available on the common reference calendar.
+- Calendar: `510300` defines panel trading dates; another ETF enters only after
+  its listing date and any missing eligible session blocks the sample.
 
 Baseline definitions may only change to fix a documented correctness bug.
 

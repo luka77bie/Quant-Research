@@ -15,6 +15,10 @@
 - No parameter is selected using the final evaluation window.
 - Failed symbols and coverage differences are reported for every run.
 - Baselines use the same eligible universe, costs, dates, and execution delay.
+- Eligibility is dynamic from official ETF listing dates; no pre-listing return
+  is filled or inferred.
+- Headline runs require every eligible ETF to align to the committed reference
+  calendar without a missing held-session assumption.
 - Excluded ETFs and dates require a pre-specified, logged reason.
 - Strong superiority claims require uncertainty estimates, not a single Sharpe
   ratio comparison.

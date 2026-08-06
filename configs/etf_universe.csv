@@ -1,19 +1,19 @@
 symbol,name,asset_group,available_from
-510300,CSI 300,broad_equity,
-510500,CSI 500,broad_equity,
-512100,CSI 1000,broad_equity,
-159915,ChiNext,broad_equity,
-588000,STAR 50,broad_equity,
-512880,Securities,sector,
-512690,Liquor,sector,
-512480,Semiconductor,sector,
-515790,Photovoltaic,sector,
-512010,Healthcare,sector,
-512660,Military,sector,
-512800,Banks,sector,
-510050,SSE 50,large_cap,
-518880,Gold,commodity,
-511010,Treasury Bond,bond,
-511260,10Y Treasury Bond,bond,
-513100,Nasdaq 100,overseas,
-513500,S&P 500,overseas,
+510300,CSI 300,broad_equity,2012-05-28
+510500,CSI 500,broad_equity,2013-03-15
+512100,CSI 1000,broad_equity,2016-11-04
+159915,ChiNext,broad_equity,2011-12-09
+588000,STAR 50,broad_equity,2020-11-16
+512880,Securities,sector,2016-08-08
+512690,Liquor,sector,2019-05-06
+512480,Semiconductor,sector,2019-06-12
+515790,Photovoltaic,sector,2020-12-18
+512010,Healthcare,sector,2013-10-28
+512660,Military,sector,2016-08-08
+512800,Banks,sector,2017-08-03
+510050,SSE 50,large_cap,2005-02-23
+518880,Gold,commodity,2013-07-29
+511010,Treasury Bond,bond,2013-03-25
+511260,10Y Treasury Bond,bond,2017-08-24
+513100,Nasdaq 100,overseas,2013-05-15
+513500,S&P 500,overseas,2014-01-15

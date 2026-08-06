@@ -45,3 +45,11 @@ Portfolio weights drift with asset returns between monthly rebalances. Costs
 are 10 basis points times one-way turnover, including the initial move from
 cash. Missing returns for held assets stop the run instead of being treated as
 zero.
+
+## 2026-08-06: Use official listing dates and a reference calendar
+
+ETF eligibility begins on the official secondary-market listing date recorded
+in the source ledger. The common sample uses `510300` trading dates as its
+reference calendar. Each ETF is checked only from the later of the research
+start and its own listing date. Missing or non-reference observations block the
+sample; they are never forward-filled or treated as zero returns.

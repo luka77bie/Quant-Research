@@ -23,6 +23,7 @@ def build_run_manifest(
     command: list[str],
     outputs: list[Path],
     repository: Path,
+    additional_inputs: list[Path] | None = None,
 ) -> dict[str, object]:
     commit, dirty = _git_state(repository)
     now = datetime.now(timezone.utc)
@@ -39,6 +40,10 @@ def build_run_manifest(
             "path": str(input_path.resolve()),
             "sha256": sha256_file(input_path),
         },
+        "additional_inputs": [
+            {"path": str(path.resolve()), "sha256": sha256_file(path)}
+            for path in (additional_inputs or [])
+        ],
         "command": command,
         "parameters": parameters,
         "outputs": [
