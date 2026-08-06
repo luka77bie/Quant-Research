@@ -9,6 +9,13 @@
 - Yahoo-adjusted prices and AKShare forward-adjusted prices may not be exactly
   comparable. Cross-provider differences must be measured before combining
   histories.
+- The frozen close-to-close execution convention includes overnight movement
+  on the next panel date even though a real strategy cannot trade at the prior
+  close. An open-aware delayed-execution sensitivity test is required before
+  interpreting return levels as implementable.
+- The current baseline engine assumes all selected ETFs share a common trading
+  calendar. A missing return for any held ETF is a hard failure, not a zero
+  return.
 - Chinese historical policy and news timestamps may be incomplete or revised.
   Retrieval time cannot substitute for original point-in-time availability.
 - A small number of macro regimes makes conditional results especially easy to

@@ -50,6 +50,12 @@ identical run. Incomplete provider responses are preserved for diagnosis while
 the downloader tries the next provider. Use `--refresh` to request all symbols
 again.
 
+After three consecutive incomplete symbols, the default batch circuit breaker
+marks the unrequested remainder as `skipped`. This prevents a provider-wide
+outage from triggering requests for the entire universe. Rerun the same command
+later to resume; use `--max-consecutive-failures 0` only when deliberately
+disabling the breaker.
+
 Generated local artifacts:
 
 ```text
@@ -63,6 +69,18 @@ data/manifests/latest_download_summary.csv
 each symbol. `latest_download_summary.csv` is the short operational checklist:
 only rows marked `downloaded` or `cached` are research-ready.
 
+Audit a provider cache without making any network request:
+
+```bash
+nrea audit \
+  --universe configs/etf_universe.csv \
+  --provider akshare
+```
+
+The audit re-reads every cached file and checks its checksum, metadata, row
+count, observed boundaries, OHLC validity, and coverage. It exits unsuccessfully
+unless every requested symbol is marked `ready`.
+
 If an ETF was listed after the requested research start, enter its verified
 first available date in the universe file's `available_from` column. Until
 then, the downloader intentionally reports the shorter history as `partial`.
@@ -71,6 +89,27 @@ coverage.
 
 See [`research/data_source_policy.md`](research/data_source_policy.md) for
 retry, fallback, and cross-provider rules.
+The dated live probe and its observed rate-limit failures are recorded in
+[`research/provider_probe_report.md`](research/provider_probe_report.md).
+
+## Frozen baseline
+
+The baseline command accepts a long-form adjusted-close file with `date`,
+`symbol`, and `close` columns:
+
+```bash
+nrea baseline \
+  --prices data/processed/common_sample.csv \
+  --output-dir artifacts/mom60
+```
+
+It writes daily returns, dated Top-3 selections, and summary metrics. Signals
+use 60 trading observations and the last panel date in each month. Weights
+become active on the next panel date, drift between rebalances, and incur 10
+basis points times one-way turnover. Missing returns for held ETFs stop the run.
+The exact execution approximation and its limitation are frozen in
+[`research/research_contract.md`](research/research_contract.md) and
+[`research/decision_log.md`](research/decision_log.md).
 
 ## Quality checks
 
@@ -85,10 +124,10 @@ Yahoo Finance, or any live market-data endpoint.
 ## Research status
 
 The repository currently establishes research contracts, provider isolation,
-resumable downloads, coverage validation, and provenance manifests. The next
-milestone is to verify ETF availability dates and reproduce the predecessor's
-frozen MOM60 baseline on a fully audited common sample. No narrative model is
-eligible for implementation before that milestone passes.
+resumable downloads, cache audits, coverage validation, provenance manifests,
+and an offline-tested MOM60 baseline engine. The next gate is to verify ETF
+availability dates and run that baseline on a fully audited common sample. No
+narrative model is eligible for implementation before that gate passes.
 
 ## License
 

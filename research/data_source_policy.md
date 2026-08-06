@@ -20,6 +20,8 @@ symbols, and be safe to rerun.
 - Symbols are processed sequentially with a configurable delay.
 - Validated caches are skipped on an identical rerun.
 - Failed and partial symbols are attempted again.
+- Three consecutive incomplete symbols stop the batch by default. Remaining
+  symbols are recorded as `skipped` and resume on a later run.
 - Every attempt and final symbol result is appended to `downloads.jsonl`.
 
 ## Completeness gate

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import timedelta
+
 import pandas as pd
 
 from narrative_regime.data.models import FetchRequest
@@ -51,15 +53,14 @@ class YahooProvider:
 
         ticker = _to_yahoo_symbol(request.symbol)
         # yfinance treats end as exclusive.
-        exclusive_end = pd.Timestamp(request.end) + pd.Timedelta(days=1)
-        raw = yf.download(
-            ticker,
+        exclusive_end = request.end + timedelta(days=1)
+        raw = yf.Ticker(ticker).history(
             start=request.start.isoformat(),
-            end=exclusive_end.date().isoformat(),
+            end=exclusive_end.isoformat(),
             auto_adjust=True,
-            progress=False,
-            threads=False,
+            actions=False,
             timeout=30,
+            raise_errors=True,
         )
         if isinstance(raw.columns, pd.MultiIndex):
             raw.columns = raw.columns.get_level_values(0)
@@ -95,4 +96,3 @@ def build_providers(names: list[str]) -> list[AkshareProvider | YahooProvider]:
     if unknown:
         raise ValueError(f"unknown providers: {', '.join(unknown)}")
     return [registry[name]() for name in names]
-

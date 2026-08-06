@@ -19,7 +19,9 @@ evidence, not proof that a conditional narrative model will work.
 - Selection: cross-sectional Top-3 among eligible ETFs.
 - Weighting: equal weight.
 - Rebalance: monthly.
-- Execution: next available trading day after the signal date.
+- Execution: target weights become active on the next common panel date. The
+  close-to-close return on that date is used as a documented daily-data
+  approximation to next-session execution.
 - Costs: 10 basis points multiplied by one-way turnover.
 
 Baseline definitions may only change to fix a documented correctness bug.
@@ -42,4 +44,3 @@ Baseline definitions may only change to fix a documented correctness bug.
   plumbing without producing an auditable common sample.
 - The combined model cannot beat or explain differences from frozen MOM60 in
   walk-forward evaluation.
-

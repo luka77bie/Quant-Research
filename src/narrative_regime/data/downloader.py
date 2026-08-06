@@ -33,10 +33,13 @@ class DownloadManager:
         attempts: int = 3,
         base_delay_seconds: float = 2.0,
         inter_symbol_delay_seconds: float = 1.0,
+        max_consecutive_failures: int = 3,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         if attempts < 1:
             raise ValueError("attempts must be at least 1")
+        if max_consecutive_failures < 0:
+            raise ValueError("max_consecutive_failures must not be negative")
         self.root = root
         self.providers = list(providers)
         if not self.providers:
@@ -44,6 +47,7 @@ class DownloadManager:
         self.attempts = attempts
         self.base_delay_seconds = base_delay_seconds
         self.inter_symbol_delay_seconds = inter_symbol_delay_seconds
+        self.max_consecutive_failures = max_consecutive_failures
         self.sleep = sleep
 
     def download_many(
@@ -52,11 +56,40 @@ class DownloadManager:
         *,
         refresh: bool = False,
     ) -> list[FetchResult]:
+        request_list = list(requests)
         results = []
-        for index, request in enumerate(requests):
+        consecutive_failures = 0
+        for index, request in enumerate(request_list):
             if index:
                 self.sleep(self.inter_symbol_delay_seconds)
-            results.append(self.download_one(request, refresh=refresh))
+            result = self.download_one(request, refresh=refresh)
+            results.append(result)
+            if result.status in {"failed", "partial"}:
+                consecutive_failures += 1
+            else:
+                consecutive_failures = 0
+
+            breaker_tripped = (
+                self.max_consecutive_failures > 0
+                and consecutive_failures >= self.max_consecutive_failures
+            )
+            if breaker_tripped:
+                remaining = request_list[index + 1 :]
+                for skipped_request in remaining:
+                    skipped = FetchResult(
+                        symbol=skipped_request.symbol,
+                        provider="none",
+                        status="skipped",
+                        rows=0,
+                        cache_path=None,
+                        error=(
+                            "batch circuit breaker: "
+                            f"{consecutive_failures} consecutive symbols incomplete"
+                        ),
+                    )
+                    self._append_result(skipped, skipped_request)
+                    results.append(skipped)
+                break
         return results
 
     def download_one(

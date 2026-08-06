@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from datetime import date
 from pathlib import Path
 
 import pandas as pd
 
+from narrative_regime.baseline.momentum import run_momentum_baseline
+from narrative_regime.data.audit import audit_provider_cache
 from narrative_regime.data.downloader import DownloadManager
 from narrative_regime.data.models import FetchRequest
 from narrative_regime.data.providers import build_providers
+from narrative_regime.provenance import build_run_manifest
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,15 +27,27 @@ def build_parser() -> argparse.ArgumentParser:
     download.add_argument("--providers", default="akshare,yahoo")
     download.add_argument("--attempts", type=int, default=3)
     download.add_argument("--delay", type=float, default=1.0)
+    download.add_argument("--max-consecutive-failures", type=int, default=3)
     download.add_argument("--refresh", action="store_true")
     download.add_argument("--root", type=Path, default=Path.cwd())
+
+    audit = subparsers.add_parser("audit", help="audit a local provider cache")
+    audit.add_argument("--universe", type=Path, required=True)
+    audit.add_argument("--provider", required=True)
+    audit.add_argument("--root", type=Path, default=Path.cwd())
+    audit.add_argument("--output", type=Path)
+
+    baseline = subparsers.add_parser("baseline", help="run frozen MOM60 baseline")
+    baseline.add_argument("--prices", type=Path, required=True)
+    baseline.add_argument("--output-dir", type=Path, required=True)
+    baseline.add_argument("--lookback", type=int, default=60)
+    baseline.add_argument("--top-n", type=int, default=3)
+    baseline.add_argument("--cost-bps", type=float, default=10.0)
     return parser
 
 
 def run_download(args: argparse.Namespace) -> int:
-    universe = pd.read_csv(args.universe, dtype={"symbol": str})
-    if "symbol" not in universe:
-        raise ValueError("universe file must contain a symbol column")
+    universe = _read_universe(args.universe)
 
     provider_names = [item.strip() for item in args.providers.split(",") if item]
     manager = DownloadManager(
@@ -39,12 +55,8 @@ def run_download(args: argparse.Namespace) -> int:
         providers=build_providers(provider_names),
         attempts=args.attempts,
         inter_symbol_delay_seconds=args.delay,
+        max_consecutive_failures=args.max_consecutive_failures,
     )
-    if universe["symbol"].duplicated().any():
-        duplicates = sorted(universe.loc[universe["symbol"].duplicated(), "symbol"])
-        duplicate_text = ", ".join(duplicates)
-        raise ValueError(f"universe contains duplicate symbols: {duplicate_text}")
-
     requests = []
     for row in universe.to_dict(orient="records"):
         request_start = args.start
@@ -86,17 +98,102 @@ def run_download(args: argparse.Namespace) -> int:
     ).to_csv(summary_path, index=False)
 
     incomplete = [
-        result for result in results if result.status in {"failed", "partial"}
+        result for result in results if result.status not in {"downloaded", "cached"}
     ]
     print(f"\ncomplete={len(results) - len(incomplete)} incomplete={len(incomplete)}")
     print(f"summary={summary_path}")
     return 1 if incomplete else 0
 
 
+def _read_universe(path: Path) -> pd.DataFrame:
+    universe = pd.read_csv(path, dtype={"symbol": str})
+    if "symbol" not in universe:
+        raise ValueError("universe file must contain a symbol column")
+    if universe["symbol"].duplicated().any():
+        duplicates = sorted(universe.loc[universe["symbol"].duplicated(), "symbol"])
+        duplicate_text = ", ".join(duplicates)
+        raise ValueError(f"universe contains duplicate symbols: {duplicate_text}")
+    return universe
+
+
+def run_audit(args: argparse.Namespace) -> int:
+    universe = _read_universe(args.universe)
+    report = audit_provider_cache(
+        args.root,
+        args.provider,
+        universe["symbol"].astype(str).tolist(),
+    )
+    output = args.output or (
+        args.root / "data" / "manifests" / f"{args.provider}_cache_audit.csv"
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    report.to_csv(output, index=False)
+    counts = report["audit_status"].value_counts().to_dict()
+    print(" ".join(f"{key}={value}" for key, value in sorted(counts.items())))
+    print(f"report={output}")
+    return 0 if report["audit_status"].eq("ready").all() else 1
+
+
+def run_baseline(args: argparse.Namespace) -> int:
+    result = run_momentum_baseline(
+        pd.read_csv(args.prices, dtype={"symbol": str}),
+        lookback=args.lookback,
+        top_n=args.top_n,
+        cost_bps=args.cost_bps,
+    )
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    daily_path = args.output_dir / "mom60_daily.csv"
+    selections_path = args.output_dir / "mom60_selections.csv"
+    metrics_path = args.output_dir / "mom60_metrics.json"
+    result.daily.to_csv(daily_path, date_format="%Y-%m-%d")
+    result.selections.to_csv(selections_path, index=False, date_format="%Y-%m-%d")
+    metrics_path.write_text(
+        json.dumps(result.metrics, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    manifest = build_run_manifest(
+        input_path=args.prices,
+        command=[
+            "nrea",
+            "baseline",
+            "--prices",
+            str(args.prices),
+            "--output-dir",
+            str(args.output_dir),
+            "--lookback",
+            str(args.lookback),
+            "--top-n",
+            str(args.top_n),
+            "--cost-bps",
+            str(args.cost_bps),
+        ],
+        parameters={
+            "lookback": args.lookback,
+            "top_n": args.top_n,
+            "cost_bps": args.cost_bps,
+            "signal_frequency": "calendar_month_end",
+            "execution_delay_panel_rows": 1,
+        },
+        outputs=[daily_path, selections_path, metrics_path],
+        repository=Path.cwd(),
+    )
+    (args.output_dir / "mom60_run_manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(json.dumps(result.metrics, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
         return run_download(args)
+    if args.command == "audit":
+        return run_audit(args)
+    if args.command == "baseline":
+        return run_baseline(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

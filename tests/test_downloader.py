@@ -197,3 +197,35 @@ def test_cache_checksum_mismatch_forces_refresh(tmp_path: Path) -> None:
 
     assert second.status == "downloaded"
     assert provider.calls == 2
+
+
+def test_batch_circuit_breaker_skips_remaining_symbols(tmp_path: Path) -> None:
+    provider = FakeProvider("primary", failures=10)
+    manager = DownloadManager(
+        tmp_path,
+        [provider],
+        attempts=1,
+        max_consecutive_failures=2,
+        inter_symbol_delay_seconds=0,
+        sleep=lambda _: None,
+    )
+    requests = [
+        FetchRequest(symbol, date(2024, 1, 1), date(2024, 1, 31))
+        for symbol in ["A", "B", "C", "D"]
+    ]
+
+    results = manager.download_many(requests)
+
+    assert [result.status for result in results] == [
+        "failed",
+        "failed",
+        "skipped",
+        "skipped",
+    ]
+    assert provider.calls == 2
+    manifest = tmp_path / "data" / "manifests" / "downloads.jsonl"
+    records = [json.loads(line) for line in manifest.read_text().splitlines()]
+    symbol_results = [
+        record for record in records if record["event"] == "symbol_result"
+    ]
+    assert len(symbol_results) == 4
