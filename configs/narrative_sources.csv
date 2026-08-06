@@ -1,0 +1,2 @@
+source_id,publisher,allowed_domain,document_type,availability_delay_hours,revision_policy
+pboc_mpr,People's Bank of China,www.pbc.gov.cn,pdf,24,versioned_official_pdf

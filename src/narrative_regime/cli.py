@@ -26,6 +26,11 @@ from narrative_regime.data.panel import (
     validate_calendar_exceptions,
 )
 from narrative_regime.data.providers import build_providers
+from narrative_regime.narrative.archive import (
+    NarrativeArchive,
+    audit_archive,
+    coverage_summary,
+)
 from narrative_regime.provenance import build_run_manifest
 
 
@@ -91,6 +96,25 @@ def build_parser() -> argparse.ArgumentParser:
     attention.add_argument("--output-dir", type=Path, required=True)
     attention.add_argument("--top-n", type=int, default=3)
     attention.add_argument("--cost-bps", type=float, default=10.0)
+
+    narrative_fetch = subparsers.add_parser(
+        "narrative-fetch", help="download a reviewed narrative document catalog"
+    )
+    narrative_fetch.add_argument("--catalog", type=Path, required=True)
+    narrative_fetch.add_argument("--sources", type=Path, required=True)
+    narrative_fetch.add_argument("--root", type=Path, default=Path.cwd())
+    narrative_fetch.add_argument("--attempts", type=int, default=3)
+    narrative_fetch.add_argument("--refresh", action="store_true")
+
+    narrative_audit = subparsers.add_parser(
+        "narrative-audit", help="audit cached narrative documents and coverage"
+    )
+    narrative_audit.add_argument("--catalog", type=Path, required=True)
+    narrative_audit.add_argument("--sources", type=Path, required=True)
+    narrative_audit.add_argument("--root", type=Path, default=Path.cwd())
+    narrative_audit.add_argument("--output-dir", type=Path, required=True)
+    narrative_audit.add_argument("--coverage-start", default="2018-03-31")
+    narrative_audit.add_argument("--coverage-end", default="2025-12-31")
     return parser
 
 
@@ -441,6 +465,86 @@ def run_attention(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_narrative_fetch(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    sources = pd.read_csv(args.sources, dtype=str, keep_default_na=False)
+    archive = NarrativeArchive(args.root, attempts=args.attempts)
+    results = archive.fetch_catalog(catalog, sources, refresh=args.refresh)
+    summary_path = args.root / "data" / "manifests" / "narrative_fetch_summary.csv"
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    results.to_csv(summary_path, index=False)
+    print(results.to_string(index=False))
+    print(f"summary={summary_path}")
+    return 0 if results["status"].isin({"downloaded", "cached"}).all() else 1
+
+
+def run_narrative_audit(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    sources = pd.read_csv(args.sources, dtype=str, keep_default_na=False)
+    audit = audit_archive(args.root, catalog, sources)
+    summary = coverage_summary(
+        audit,
+        start=args.coverage_start,
+        end=args.coverage_end,
+    )
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    audit_path = args.output_dir / "narrative_archive_audit.csv"
+    summary_path = args.output_dir / "narrative_coverage_summary.json"
+    audit.to_csv(audit_path, index=False, date_format="%Y-%m-%dT%H:%M:%SZ")
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    raw_inputs = []
+    for row in audit.to_dict("records"):
+        base = (
+            args.root
+            / "data"
+            / "raw"
+            / "narrative"
+            / str(row["source_id"])
+            / f"{row['record_id']}"
+        )
+        raw_inputs.extend(
+            path for path in (base.with_suffix(".pdf"), base.with_suffix(".meta.json"))
+            if path.exists()
+        )
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        additional_inputs=[args.sources, *raw_inputs],
+        command=[
+            "nrea",
+            "narrative-audit",
+            "--catalog",
+            str(args.catalog),
+            "--sources",
+            str(args.sources),
+            "--root",
+            str(args.root),
+            "--output-dir",
+            str(args.output_dir),
+            "--coverage-start",
+            args.coverage_start,
+            "--coverage-end",
+            args.coverage_end,
+        ],
+        parameters={
+            "coverage_start": args.coverage_start,
+            "coverage_end": args.coverage_end,
+            "required_point_in_time_status": "verified",
+        },
+        outputs=[audit_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "narrative_archive_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(audit.to_string(index=False))
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if summary["modeling_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -455,6 +559,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_baseline(args)
     if args.command == "attention-reproduction":
         return run_attention(args)
+    if args.command == "narrative-fetch":
+        return run_narrative_fetch(args)
+    if args.command == "narrative-audit":
+        return run_narrative_audit(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 
