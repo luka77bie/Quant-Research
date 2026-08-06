@@ -73,3 +73,16 @@ not as a successful strategy claim. At 10 basis points it annualizes at 9.68%
 with a 0.486 zero-rate Sharpe and -42.02% maximum drawdown. The result is highly
 path-dependent, including 103.99% in 2020 and -32.39% in 2022. The next gate is
 reproduction of the predecessor market-attention proxy on the same panel.
+
+## 2026-08-06: Retain market attention only as a control
+
+The predecessor's fixed 50% market-attention composite directionally reproduces
+its defensive 2022-2023 result: annual return improves from -16.62% to -13.14%
+and maximum drawdown from -33.35% to -28.61%. It does not establish a stable
+mechanism. Pre-2022 performance is worse, full-sample drawdown deepens from
+-42.02% to -49.61%, and 2024+ behavior conflicts with the predecessor result.
+
+Tencent lacks transaction value, so `close * volume` replaces the predecessor's
+AKShare amount field. The fixed proxy is retained only as a market-data control.
+Its feature weights, windows, and 50% blend will not be tuned on this sample.
+The next gate is an auditable point-in-time narrative archive.

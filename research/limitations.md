@@ -20,6 +20,11 @@
   Retrieval time cannot substitute for original point-in-time availability.
 - A small number of macro regimes makes conditional results especially easy to
   overfit. Crisis case studies are interpretation, not independent validation.
+- Tencent does not expose transaction value in the qualified endpoint. The
+  predecessor attention control therefore uses `close * volume` as an activity
+  proxy; it is not an exact reproduction of the AKShare amount field.
+- The attention control uses only market observables. Calling it a narrative or
+  AI signal would be a construct-validity error even when its returns improve.
 
 No output from this repository should be described as live-trading-ready until
 corporate actions, spreads, taxes, market impact, operational monitoring, and

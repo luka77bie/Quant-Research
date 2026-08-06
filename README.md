@@ -2,7 +2,8 @@
 
 [![CI](https://github.com/luka77bie/Quant-Research/actions/workflows/ci.yml/badge.svg)](https://github.com/luka77bie/Quant-Research/actions/workflows/ci.yml)
 
-Status: qualified market-data panel and frozen MOM60 baseline milestone.
+Status: qualified market-data panel, frozen MOM60 baseline, and completed
+market-attention control reproduction.
 
 This project studies a narrower follow-up question to
 [`narrative-aware-etf-rotation`](https://github.com/luka77bie/narrative-aware-etf-rotation):
@@ -158,6 +159,27 @@ The exact execution approximation and its limitation are frozen in
 The qualified result, annual path, and 10/20/30 bps sensitivity are reported in
 [`research/mom60_baseline_report.md`](research/mom60_baseline_report.md).
 
+## Market-attention control
+
+Reproduce the predecessor project's fixed market-attention composite without a
+weight search:
+
+```bash
+nrea attention-reproduction \
+  --prices data/processed/common_sample.csv \
+  --output-dir outputs/attention_reproduction
+```
+
+The command writes both strategy paths, selections, full signal history,
+subperiod comparisons, metrics, and a checksum manifest. Tencent does not
+provide transaction value, so the command records whether activity value came
+from a reported amount, `close * volume`, or an explicit verified no-trade zero.
+
+The 2022-2023 defensive direction reproduced, but full-sample drawdown worsened
+and behavior was period-sensitive. This feature is therefore frozen as a
+market-data control, not accepted as narrative evidence. See
+[`research/attention_proxy_reproduction.md`](research/attention_proxy_reproduction.md).
+
 ## Quality checks
 
 ```bash
@@ -172,9 +194,9 @@ Yahoo Finance, or any live market-data endpoint.
 
 ETF listing dates are verified against official exchange lists. The Tencent
 provider produced all 18 isolated caches, the common-sample audit passed, and
-the frozen MOM60 baseline now runs on the qualified dynamic universe. Narrative
-features remain blocked until their own point-in-time archive passes the
-research contract.
+the frozen MOM60 and market-attention control run on the qualified dynamic
+universe. Genuine narrative features remain blocked until their point-in-time
+archive passes the research contract.
 
 ## License
 
