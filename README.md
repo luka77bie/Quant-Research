@@ -182,11 +182,11 @@ market-data control, not accepted as narrative evidence. See
 
 ## Narrative archive gate
 
-Download only the manually reviewed official-policy pilot catalog:
+Download the reviewed official-policy quarterly catalog:
 
 ```bash
 nrea narrative-fetch \
-  --catalog configs/narrative_pilot_catalog.csv \
+  --catalog configs/pboc_mpr_catalog.csv \
   --sources configs/narrative_sources.csv
 ```
 
@@ -195,7 +195,7 @@ and quarterly coverage without a network request:
 
 ```bash
 nrea narrative-audit \
-  --catalog configs/narrative_pilot_catalog.csv \
+  --catalog configs/pboc_mpr_catalog.csv \
   --sources configs/narrative_sources.csv \
   --output-dir outputs/narrative_archive_pilot
 ```

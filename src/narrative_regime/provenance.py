@@ -34,6 +34,7 @@ def build_run_manifest(
         "environment": {
             "python": platform.python_version(),
             "pandas": _package_version("pandas"),
+            "pypdf": _package_version("pypdf"),
             "project": _package_version("narrative-regime-etf-allocation"),
         },
         "input": {
