@@ -8,6 +8,13 @@ from pathlib import Path
 
 import pandas as pd
 
+from narrative_regime.baseline.attention import (
+    FEATURE_WEIGHTS,
+    LONG_WINDOW,
+    PROXY_WEIGHT,
+    SHORT_WINDOW,
+    run_attention_reproduction,
+)
 from narrative_regime.baseline.momentum import run_momentum_baseline
 from narrative_regime.data.audit import audit_provider_cache
 from narrative_regime.data.comparison import compare_provider_caches
@@ -75,6 +82,15 @@ def build_parser() -> argparse.ArgumentParser:
     baseline.add_argument("--lookback", type=int, default=60)
     baseline.add_argument("--top-n", type=int, default=3)
     baseline.add_argument("--cost-bps", type=float, default=10.0)
+
+    attention = subparsers.add_parser(
+        "attention-reproduction",
+        help="reproduce the fixed predecessor market-attention control",
+    )
+    attention.add_argument("--prices", type=Path, required=True)
+    attention.add_argument("--output-dir", type=Path, required=True)
+    attention.add_argument("--top-n", type=int, default=3)
+    attention.add_argument("--cost-bps", type=float, default=10.0)
     return parser
 
 
@@ -347,6 +363,84 @@ def run_baseline(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_attention(args: argparse.Namespace) -> int:
+    prices = pd.read_csv(args.prices, dtype={"symbol": str})
+    result = run_attention_reproduction(
+        prices,
+        top_n=args.top_n,
+        cost_bps=args.cost_bps,
+    )
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    output_frames = {
+        "mom60_daily.csv": (result.momentum.daily, True),
+        "mom60_selections.csv": (result.momentum.selections, False),
+        "attention_composite_daily.csv": (result.composite.daily, True),
+        "attention_composite_selections.csv": (result.composite.selections, False),
+        "attention_signals.csv": (result.signals, False),
+        "attention_subperiod_comparison.csv": (result.comparison, False),
+    }
+    output_paths = []
+    for filename, (frame, include_index) in output_frames.items():
+        path = args.output_dir / filename
+        frame.to_csv(
+            path,
+            index=include_index,
+            date_format="%Y-%m-%d",
+        )
+        output_paths.append(path)
+
+    metrics_path = args.output_dir / "attention_reproduction_metrics.json"
+    metrics = {
+        "activity_value_source_counts": result.activity_source_counts,
+        "fixed_parameters": {
+            "short_window": SHORT_WINDOW,
+            "long_window": LONG_WINDOW,
+            "proxy_weight": PROXY_WEIGHT,
+            "feature_weights": FEATURE_WEIGHTS,
+            "top_n": args.top_n,
+            "cost_bps": args.cost_bps,
+        },
+        "mom60": result.momentum.metrics,
+        "attention_composite": result.composite.metrics,
+    }
+    metrics_path.write_text(
+        json.dumps(metrics, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    output_paths.append(metrics_path)
+    manifest = build_run_manifest(
+        input_path=args.prices,
+        command=[
+            "nrea",
+            "attention-reproduction",
+            "--prices",
+            str(args.prices),
+            "--output-dir",
+            str(args.output_dir),
+            "--top-n",
+            str(args.top_n),
+            "--cost-bps",
+            str(args.cost_bps),
+        ],
+        parameters={
+            **metrics["fixed_parameters"],
+            "signal_frequency": "calendar_month_end",
+            "execution_delay_panel_rows": 1,
+            "amount_fallback": "close_x_volume",
+        },
+        outputs=output_paths,
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "attention_reproduction_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(json.dumps(metrics, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -359,6 +453,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_sample(args)
     if args.command == "baseline":
         return run_baseline(args)
+    if args.command == "attention-reproduction":
+        return run_attention(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

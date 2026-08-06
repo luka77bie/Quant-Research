@@ -13,6 +13,7 @@ authors = [
   { name = "Jiacheng Bie" },
 ]
 dependencies = [
+  "numpy>=1.24,<3",
   "pandas>=2.1,<3",
   "requests>=2.31,<3",
 ]
