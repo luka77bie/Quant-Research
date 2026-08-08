@@ -18,6 +18,13 @@
   every other missing return for a held ETF remains a hard failure.
 - Chinese historical policy and news timestamps may be incomplete or revised.
   Retrieval time cannot substitute for original point-in-time availability.
+- Current NBS and PBOC macro release pages establish official publication
+  records, not unchanged historical page versions. The 12-record Study 02 pilot
+  has zero contemporaneous snapshots and cannot yet support a strict
+  point-in-time regime backtest.
+- The March 2023 M2 pilot timestamp is conservatively reconstructed from an
+  official retrospective confirmation rather than an original release page.
+  It requires independent dated evidence before strict intraday alignment.
 - A currently downloadable, versioned official PDF still may have been replaced
   after publication. Without a historical snapshot and matching checksum it is
   provisional, not strictly point-in-time verified.

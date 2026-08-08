@@ -274,3 +274,21 @@ of the exhausted narrative sample and begins with a return-blind feasibility
 pilot for macro release dates and revision status. No regime threshold or
 allocation rule may be chosen from ETF outcomes. Study 03 remains parked until
 Study 02 produces a reproducible note.
+
+## 2026-08-08: Pass the macro release pilot at publication-record level
+
+The return-blind pilot catalogs four manufacturing PMI, four CPI YoY, and four
+M2 YoY observations. All 12 records have a numeric release value, exact or
+conservatively reconstructed release timestamp, official NBS or PBOC domain,
+and explicit revision-risk status. Eleven use original release pages; the March
+2023 M2 record uses an official PBOC retrospective confirmation of the April 11
+release.
+
+A dated live probe returns HTTP 200 for all 12 current official URLs. The pilot
+therefore passes its 10-of-12 publication-record feasibility gate without
+reading ETF returns or constructing regime thresholds.
+
+No record has a locked contemporaneous historical page snapshot, so strict
+point-in-time verification remains 0 of 12. The next gate is to cache official
+pages by checksum and verify release time and value against page content. Macro
+states and ETF payoff joins remain prohibited until that evidence layer passes.

@@ -5,8 +5,9 @@
 Personal systematic strategy research focused on Chinese policy, macro regimes,
 and liquid ETF allocation.
 
-Status: Study 01 is complete as a qualified negative result. Study 02, a
-return-blind China macro-regime ETF payoff atlas, is in protocol design.
+Status: Study 01 is complete as a qualified negative result. Study 02 has passed
+its 12-record official-release feasibility pilot at publication-record level;
+strict historical-version verification remains open.
 
 ## Research identity
 
@@ -27,13 +28,27 @@ by itself.
 | Study | Question | Status | Main decision |
 | --- | --- | --- | --- |
 | 01 Narrative-Regime ETF Allocation | Does PBOC policy language add information beyond ETF momentum and market controls? | Complete, exploratory | No adjusted candidate; do not construct a narrative portfolio |
-| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Protocol design | Build regimes without reading forward ETF outcomes |
+| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Data pilot passed, publication records only | Archive and verify official release evidence before constructing regimes |
 | 03 Policy Event Research | Which scheduled policy events create repeatable cross-asset repricing after realistic delays? | Planned | Start only after Study 02 passes its data gate |
 
 See [`lab/roadmap_v1_1.md`](lab/roadmap_v1_1.md) for scope and sequencing,
 [`lab/research_process.md`](lab/research_process.md) for the common workflow,
 and [`research_notes/01_policy_narrative_etf_relations.md`](research_notes/01_policy_narrative_etf_relations.md)
 for the interview-length note from Study 01.
+
+Run the Study 02 return-blind release-record pilot:
+
+```bash
+nrea macro-release-pilot \
+  --catalog configs/macro_release_pilot.csv \
+  --output-dir outputs/macro_release_pilot
+```
+
+The pilot audits four manufacturing PMI, four CPI YoY, and four M2 YoY release
+records without reading ETF returns. It distinguishes original release pages,
+official retrospective confirmation, revision notes, and historical-snapshot
+status. The current result is documented in
+[`research/macro_release_pilot_report.md`](research/macro_release_pilot_report.md).
 
 ## Study 01: Narrative-Regime ETF Allocation
 

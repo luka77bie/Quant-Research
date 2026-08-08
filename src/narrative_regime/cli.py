@@ -26,6 +26,7 @@ from narrative_regime.data.panel import (
     validate_calendar_exceptions,
 )
 from narrative_regime.data.providers import build_providers
+from narrative_regime.macro.pilot import audit_macro_release_pilot
 from narrative_regime.narrative.adjusted_relations import (
     build_adjusted_market_relations,
     load_adjusted_relation_protocol,
@@ -208,6 +209,13 @@ def build_parser() -> argparse.ArgumentParser:
     adjusted_relations.add_argument("--panel", type=Path, required=True)
     adjusted_relations.add_argument("--protocol", type=Path, required=True)
     adjusted_relations.add_argument("--output-dir", type=Path, required=True)
+
+    macro_pilot = subparsers.add_parser(
+        "macro-release-pilot",
+        help="audit the return-blind official macro release feasibility catalog",
+    )
+    macro_pilot.add_argument("--catalog", type=Path, required=True)
+    macro_pilot.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -1122,6 +1130,53 @@ def run_adjusted_relations(args: argparse.Namespace) -> int:
     return 0 if result.summary["adjusted_relation_gate"] == "pass" else 1
 
 
+def run_macro_release_pilot(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype={"record_id": str})
+    result = audit_macro_release_pilot(catalog)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    audit_path = args.output_dir / "macro_release_pilot_audit.csv"
+    result.audit.to_csv(audit_path, index=False)
+    summary_path = args.output_dir / "macro_release_pilot_summary.json"
+    summary_path.write_text(
+        json.dumps(result.summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        parameters={
+            "expected_dimensions": ["growth", "inflation", "liquidity"],
+            "expected_records_per_dimension": 4,
+            "minimum_original_release_pages": 10,
+            "etf_returns_read": False,
+            "regime_thresholds_constructed": False,
+            "portfolio_constructed": False,
+        },
+        command=[
+            "nrea",
+            "macro-release-pilot",
+            "--catalog",
+            str(args.catalog),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        outputs=[audit_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_release_pilot_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(json.dumps(result.summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return (
+        0
+        if result.summary["macro_release_pilot_gate"]
+        == "pass_publication_record_only"
+        else 1
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -1154,6 +1209,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_market_relations(args)
     if args.command == "adjusted-relations":
         return run_adjusted_relations(args)
+    if args.command == "macro-release-pilot":
+        return run_macro_release_pilot(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

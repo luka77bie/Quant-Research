@@ -55,7 +55,10 @@ tradable allocation.
 | Career relevance | 5/5 | Directly demonstrates macro reasoning, systematic validation, ETF allocation, and research judgment |
 | Research risk | High | Flexible thresholds, revised data, persistent states, and few independent cycles can create false regime stories |
 
-Current decision: `keep, subject to a data-feasibility pilot`.
+Current decision: `keep at publication-record level`. The 12-record pilot
+passes with 11 original official release pages and one official retrospective
+confirmation. Strict point-in-time verification remains 0 of 12 because no
+historical page snapshot is locked.
 
 ## Fastest Falsification Test
 

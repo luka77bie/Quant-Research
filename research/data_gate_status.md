@@ -38,6 +38,19 @@
   asset-group coefficients, and 99 dispersion models with no numerical
   exclusions. All 198 multiplicity-adjusted primary and dispersion tests have
   q-values above 0.10.
+- The return-blind Study 02 source pilot catalogs 12 official macro publication
+  records across manufacturing PMI, CPI YoY, and M2 YoY. Eleven are original
+  release pages and one is an official retrospective confirmation; all 12
+  current URLs were reachable on 2026-08-08.
+
+## Current Macro Blocker
+
+The Study 02 pilot passes only at publication-record level. None of the 12
+records has a locked contemporaneous snapshot, and the March 2023 M2 release
+time is conservatively reconstructed from an official retrospective source.
+Macro-state construction and ETF payoff joins remain blocked until the pages
+are archived by checksum and their displayed timestamps and values are verified
+under deterministic extraction rules.
 
 ## Previous Provider Failure
 
