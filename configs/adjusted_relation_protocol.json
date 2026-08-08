@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "status": "frozen_before_adjusted_market_relationships",
+  "evidence_status": "post_descriptive_exploratory",
+  "descriptive_results_already_observed_at_commit": "e321acd80dd222fbd46ef92e56549a818374291e",
+  "timing_protocols": [
+    "delay_24h",
+    "delay_48h",
+    "next_month"
+  ],
+  "forward_windows_reference_sessions": [5, 20, 60],
+  "primary_features": [
+    "term_density_per_1000_accommodation",
+    "term_density_per_1000_restraint",
+    "term_density_per_1000_risk_control",
+    "term_density_per_1000_fx_stability",
+    "term_density_per_1000_structural_support",
+    "prior_section_similarity",
+    "term_density_per_1000_accommodation_change_qoq",
+    "term_density_per_1000_restraint_change_qoq",
+    "term_density_per_1000_risk_control_change_qoq",
+    "term_density_per_1000_fx_stability_change_qoq",
+    "term_density_per_1000_structural_support_change_qoq"
+  ],
+  "measurement_control_mapping": {
+    "level": "section_character_count",
+    "change": "section_character_change_qoq",
+    "change_feature_suffix": "_change_qoq"
+  },
+  "market_controls": ["lagged_mom60", "lagged_volatility20"],
+  "standardization": {
+    "scope": "within_each_complete_model_sample",
+    "columns": "feature_and_continuous_controls",
+    "ddof": 1,
+    "outcome_standardized": true
+  },
+  "models": {
+    "primary_pooled_asset_group": {
+      "outcome": "equal_weight_forward_return",
+      "formula": "z_outcome ~ z_feature + z_measurement_control + z_lagged_mom60 + z_lagged_volatility20 + asset_group_fixed_effects",
+      "covariance": "record_id_cluster_robust_cr1",
+      "minimum_event_clusters": 24
+    },
+    "secondary_asset_group": {
+      "outcome": "equal_weight_forward_return",
+      "formula": "z_outcome ~ z_feature + z_measurement_control + z_lagged_mom60 + z_lagged_volatility20",
+      "covariance": "none_descriptive_coefficient_only",
+      "minimum_events": 24
+    },
+    "secondary_dispersion": {
+      "outcome": "cross_sectional_return_dispersion",
+      "formula": "z_outcome ~ z_feature + z_measurement_control + z_mean_lagged_mom60 + z_mean_lagged_volatility20",
+      "covariance": "newey_west_bartlett",
+      "hac_lags_by_window": {"5": 0, "20": 0, "60": 1},
+      "minimum_events": 24
+    }
+  },
+  "numerical_gates": {
+    "minimum_predictor_standard_deviation": 1e-12,
+    "maximum_absolute_feature_control_correlation": 0.95,
+    "maximum_design_condition_number": 1000.0,
+    "rank_deficiency_allowed": false
+  },
+  "multiplicity": {
+    "method": "benjamini_hochberg",
+    "families": [
+      "primary_pooled_asset_group_all_99_specifications",
+      "secondary_dispersion_all_99_specifications"
+    ],
+    "reference_fdr": 0.1,
+    "secondary_asset_group_p_values_allowed": false
+  },
+  "reporting_rules": {
+    "report_every_primary_feature": true,
+    "report_every_timing_protocol": true,
+    "report_every_forward_window": true,
+    "report_excluded_models": true,
+    "select_feature_from_results": false,
+    "select_timing_from_results": false,
+    "select_window_from_results": false,
+    "portfolio_construction_allowed": false,
+    "confirmatory_claim_allowed": false,
+    "strict_point_in_time_claim_allowed": false
+  },
+  "interpretation_gate": {
+    "candidate_incremental_relation_requires": [
+      "pooled_bh_q_value_at_or_below_0.10",
+      "same_pooled_coefficient_sign_for_all_three_timing_protocols_at_that_feature_and_window",
+      "no_numerical_gate_failure"
+    ],
+    "candidate_status_allows_portfolio_construction": false,
+    "independent_validation_required": true
+  }
+}

@@ -204,3 +204,20 @@ The computational gate passes, but the evidence does not justify strategy
 construction. Any adjusted relation model must be specified in a new protocol
 that treats these raw outcomes as observed exploratory evidence. Strict
 point-in-time claims remain blocked by unresolved historical PDF identity.
+
+## 2026-08-08: Freeze adjusted relations after descriptive inspection
+
+The unadjusted relationship surface is already observed at commit `e321acd`.
+The next protocol is therefore explicitly post-descriptive and exploratory. It
+cannot produce untouched confirmatory evidence.
+
+The primary model pools equal-weight asset-group outcomes, includes one of 11
+primary narrative features, the matching text-length control, lagged MOM60,
+lagged 20-session volatility, and asset-group fixed effects, and clusters
+uncertainty by report event. Secondary asset-group coefficients receive no
+p-values; dispersion models use frozen Newey-West lags. Benjamini-Hochberg
+adjustment covers all 99 pooled tests and all 99 dispersion tests separately.
+
+All three timing rules and all three horizons remain mandatory. Numerical gate
+failures are reported as exclusions. No adjusted result permits portfolio
+construction, and independent validation remains required.
