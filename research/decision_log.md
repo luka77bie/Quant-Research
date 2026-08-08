@@ -256,3 +256,21 @@ rules, but the 24- and 48-hour estimates are much smaller and have q-values of
 decision. No narrative feature proceeds to a portfolio. A return-blind macro
 regime data layer or genuinely future reports may be built next, but this sample
 cannot be reused to tune an adjusted narrative rule.
+
+## 2026-08-08: Reposition the repository as a strategy research lab
+
+Reviewing the original Luka Quant Research Lab plan shows that the intended
+career signal is not code volume or a single large model. It is repeated ability
+to ask an economic question, validate it systematically, explain a negative
+result, and make a portfolio decision.
+
+The repository becomes the lab entry point and the existing narrative-regime
+work becomes Study 01. The original target of 20 notes and eight projects is
+reduced in v1.1 to three flagship studies and six polished notes. This avoids
+optimizing output count before research quality is stable.
+
+Study 02 is a China macro-regime ETF payoff atlas. It is deliberately independent
+of the exhausted narrative sample and begins with a return-blind feasibility
+pilot for macro release dates and revision status. No regime threshold or
+allocation rule may be chosen from ETF outcomes. Study 03 remains parked until
+Study 02 produces a reproducible note.

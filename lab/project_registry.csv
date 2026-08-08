@@ -1,0 +1,4 @@
+study_id,title,domain,status,next_gate,primary_artifact
+01,Narrative-Regime ETF Allocation,policy narrative and ETF allocation,complete_negative_result,no portfolio; independent data required,research_notes/01_policy_narrative_etf_relations.md
+02,China Macro Regime ETF Atlas,macro regimes and multi-asset ETF payoffs,protocol_design,freeze macro data and release-lag contract,lab/study_02_macro_regime_idea_card.md
+03,Scheduled Policy Event Research,event-driven cross-asset research,planned,start only after Study 02 note,lab/roadmap_v1_1.md

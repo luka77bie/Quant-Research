@@ -1,21 +1,60 @@
-# Narrative-Regime ETF Allocation
+# Luka Quant Research Lab
 
 [![CI](https://github.com/luka77bie/Quant-Research/actions/workflows/ci.yml/badge.svg)](https://github.com/luka77bie/Quant-Research/actions/workflows/ci.yml)
 
-Status: qualified market-data panel, frozen MOM60 baseline, and completed
-pre-model narrative-market relationship audit.
+Personal systematic strategy research focused on Chinese policy, macro regimes,
+and liquid ETF allocation.
 
-This project studies a narrower follow-up question to
+Status: Study 01 is complete as a qualified negative result. Study 02, a
+return-blind China macro-regime ETF payoff atlas, is in protocol design.
+
+## Research identity
+
+This is not a collection of trading scripts or a claim to compete with an
+institutional quant platform. It is a public strategy-research portfolio built
+around one repeatable process:
+
+> Economic question -> falsifiable hypothesis -> auditable data -> frozen
+> benchmark -> complete sensitivity grid -> decision, including stopping.
+
+The lab is positioned for strategy research, systematic investing, ETF and
+multi-asset research, and securities proprietary-investment roles. Engineering
+exists to make the research reproducible; it is not the research contribution
+by itself.
+
+## Research portfolio
+
+| Study | Question | Status | Main decision |
+| --- | --- | --- | --- |
+| 01 Narrative-Regime ETF Allocation | Does PBOC policy language add information beyond ETF momentum and market controls? | Complete, exploratory | No adjusted candidate; do not construct a narrative portfolio |
+| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Protocol design | Build regimes without reading forward ETF outcomes |
+| 03 Policy Event Research | Which scheduled policy events create repeatable cross-asset repricing after realistic delays? | Planned | Start only after Study 02 passes its data gate |
+
+See [`lab/roadmap_v1_1.md`](lab/roadmap_v1_1.md) for scope and sequencing,
+[`lab/research_process.md`](lab/research_process.md) for the common workflow,
+and [`research_notes/01_policy_narrative_etf_relations.md`](research_notes/01_policy_narrative_etf_relations.md)
+for the interview-length note from Study 01.
+
+## Study 01: Narrative-Regime ETF Allocation
+
+The flagship study is a narrower follow-up to
 [`narrative-aware-etf-rotation`](https://github.com/luka77bie/narrative-aware-etf-rotation):
 
 > Under which macro, uncertainty, and liquidity regimes does narrative
 > information add incremental value to a frozen ETF momentum baseline?
 
-The current milestone is data qualification. Market-data requests are resumable,
-cached per provider and symbol, and recorded in an append-only provenance
-manifest. One failed symbol does not invalidate a complete batch, and a
-provider that returns only part of the requested history is never silently
-treated as complete.
+Study 01 evaluates whether the narrative leg is reliable enough to justify that
+conditional model. It is not a completed test of macro-regime interactions: the
+narrative evidence failed its pre-model gate, so the project stopped before
+fitting a flexible conditional strategy. Study 02 now builds the macro-regime
+leg independently and return-blind.
+
+Study 01 now spans provider qualification, a frozen baseline, official-policy
+archive construction, return-blind text diagnostics, timing protocols,
+unadjusted falsification, and adjusted inference. Market-data requests remain
+resumable and cached per provider and symbol. One failed symbol does not
+invalidate a complete batch, and a partial history is never silently treated as
+complete.
 
 ## Current scope
 

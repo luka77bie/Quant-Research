@@ -1,4 +1,4 @@
-# Idea Card v0.1
+# Study 01 Idea Card: Final Status
 
 ## Thesis
 
@@ -37,14 +37,21 @@ and simple price-based controls.
 | Career relevance | 5 | Demonstrates strategy research, data discipline, attribution, and honest model rejection. |
 | Research quality risk | 2 | Few regimes and flexible narrative definitions create substantial overfitting risk. |
 
-## Decision
+## Final Decision
 
-`revise-and-keep`: proceed with the data-reliability and baseline milestones.
-Do not implement an LLM narrative model until a reproducible point-in-time
-archive passes the data audit.
+`complete-and-stop-strategy`: the data, baseline, extraction, timing, and
+adjusted-relation engineering gates pass. Historical PDF identity remains
+provisional, and zero adjusted pooled or dispersion models meet the frozen 10%
+FDR threshold. Do not implement an LLM narrative model or construct a narrative
+portfolio from these 32 reports.
 
-## Fastest falsification test
+## Completed Falsification Test
 
 Reproduce MOM60 on a common, fully audited ETF panel and verify that the old
 market-attention proxy's defensive 2022-2023 behaviour survives the new data
 pipeline. Stop or redesign if the predecessor result cannot be reproduced.
+
+The direction reproduced only in the original defensive subperiod and did not
+generalize across the full sample. The later official-policy narrative tests
+also failed their adjusted candidate threshold. The research idea is preserved
+as a qualified negative result rather than extended through feature search.
