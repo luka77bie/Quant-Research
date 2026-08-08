@@ -26,6 +26,10 @@ from narrative_regime.data.panel import (
     validate_calendar_exceptions,
 )
 from narrative_regime.data.providers import build_providers
+from narrative_regime.narrative.adjusted_relations import (
+    build_adjusted_market_relations,
+    load_adjusted_relation_protocol,
+)
 from narrative_regime.narrative.archive import (
     NarrativeArchive,
     audit_archive,
@@ -196,6 +200,14 @@ def build_parser() -> argparse.ArgumentParser:
     market_relations.add_argument("--protocol", type=Path, required=True)
     market_relations.add_argument("--reference-symbol", default="510300")
     market_relations.add_argument("--output-dir", type=Path, required=True)
+
+    adjusted_relations = subparsers.add_parser(
+        "adjusted-relations",
+        help="run frozen post-descriptive adjusted relationship protocol",
+    )
+    adjusted_relations.add_argument("--panel", type=Path, required=True)
+    adjusted_relations.add_argument("--protocol", type=Path, required=True)
+    adjusted_relations.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -1043,6 +1055,73 @@ def run_market_relations(args: argparse.Namespace) -> int:
     return 0 if result.summary["market_relation_gate"] == "pass" else 1
 
 
+def run_adjusted_relations(args: argparse.Namespace) -> int:
+    panel = pd.read_csv(
+        args.panel,
+        dtype={"record_id": str, "symbol": str},
+    )
+    protocol = load_adjusted_relation_protocol(args.protocol)
+    result = build_adjusted_market_relations(panel, protocol)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    output_frames = {
+        "adjusted_asset_group_panel.csv": result.asset_group_panel,
+        "adjusted_dispersion_panel.csv": result.dispersion_panel,
+        "pooled_adjusted_relations.csv": result.pooled_relations,
+        "asset_group_adjusted_relations.csv": result.asset_group_relations,
+        "dispersion_adjusted_relations.csv": result.dispersion_relations,
+    }
+    output_paths = []
+    for filename, frame in output_frames.items():
+        path = args.output_dir / filename
+        frame.to_csv(path, index=False)
+        output_paths.append(path)
+    summary_path = args.output_dir / "adjusted_relation_summary.json"
+    summary_path.write_text(
+        json.dumps(result.summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    output_paths.append(summary_path)
+    manifest = build_run_manifest(
+        input_path=args.panel,
+        additional_inputs=[args.protocol],
+        command=[
+            "nrea",
+            "adjusted-relations",
+            "--panel",
+            str(args.panel),
+            "--protocol",
+            str(args.protocol),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "protocol_status": protocol["status"],
+            "evidence_status": protocol["evidence_status"],
+            "descriptive_results_already_observed_at_commit": protocol[
+                "descriptive_results_already_observed_at_commit"
+            ],
+            "timing_protocols": protocol["timing_protocols"],
+            "forward_windows_reference_sessions": protocol[
+                "forward_windows_reference_sessions"
+            ],
+            "models": protocol["models"],
+            "multiplicity": protocol["multiplicity"],
+            "portfolio_constructed": False,
+            "confirmatory_claim_allowed": False,
+        },
+        outputs=output_paths,
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "adjusted_relation_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(json.dumps(result.summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if result.summary["adjusted_relation_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -1073,6 +1152,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_narrative_diagnostics(args)
     if args.command == "market-relations":
         return run_market_relations(args)
+    if args.command == "adjusted-relations":
+        return run_adjusted_relations(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 
