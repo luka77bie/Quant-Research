@@ -266,6 +266,22 @@ close, and reports unadjusted Pearson and Spearman relationships. It does not
 run inference, select a specification, or simulate a strategy. See
 [`research/descriptive_market_relation_report.md`](research/descriptive_market_relation_report.md).
 
+Run the separately frozen post-descriptive adjustment grid:
+
+```bash
+nrea adjusted-relations \
+  --panel outputs/descriptive_market_relations/market_relation_panel.csv \
+  --protocol configs/adjusted_relation_protocol.json \
+  --output-dir outputs/adjusted_market_relations
+```
+
+The primary model controls for text length, lagged MOM60, lagged volatility, and
+asset-group fixed effects, with report-event clustered uncertainty and
+Benjamini-Hochberg correction across all 99 specifications. The implementation
+also reports 594 descriptive asset-group coefficients and 99 adjusted
+dispersion models. See
+[`research/adjusted_relation_report.md`](research/adjusted_relation_report.md).
+
 The downloader caches each PDF independently, retries failures, rejects
 unapproved domains and non-PDF responses, and locks reviewed checksums in the
 catalog. All 32 quarterly documents from 2018 through 2025 are archived and
@@ -300,7 +316,9 @@ lookahead violations. Feature stability diagnostics pass with only expected
 first-observation missingness; redundant representations remain audit-only. The
 descriptive relationship audit covers every frozen combination with zero
 control-date violations, but most primary-feature signs are not stable across
-delay and horizon choices. Strategy construction remains stopped.
+delay and horizon choices. After fixed controls and multiplicity correction,
+zero pooled or dispersion specifications meet the frozen 10% FDR threshold.
+Strategy construction remains stopped.
 
 ## License
 

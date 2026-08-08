@@ -234,3 +234,25 @@ families, and 10% reference FDR unchanged. It adds the more conservative Student
 t convention: event-cluster count minus one degrees of freedom for pooled
 models and residual degrees of freedom for dispersion models. The amendment is
 logged because this choice can affect a boundary result in a 31-event sample.
+
+## 2026-08-08: Stop after adjusted relations produce no candidate
+
+The formal run from clean commit `7ebd9b2` completes all 99 pooled models, 594
+asset-group descriptive models, and 99 dispersion models with no numerical
+exclusions. Design condition numbers range from 9.58 to 10.52 and the largest
+absolute feature-control correlation is 0.308, so numerical instability does
+not explain the result.
+
+No pooled or dispersion model has a Benjamini-Hochberg q-value at or below the
+frozen 0.10 reference threshold. The closest pooled model is next-month,
+20-session structural-support-density change: standardized beta -0.262, CR1
+standard error 0.072, 30 inference degrees of freedom, nominal p-value 0.00102,
+and q-value 0.10099. It fails the frozen threshold and is not rounded into a
+candidate. The minimum dispersion q-value is 0.39365.
+
+The same feature-window pooled coefficient is negative under all three timing
+rules, but the 24- and 48-hour estimates are much smaller and have q-values of
+0.915 and 0.988. This sensitivity and the threshold boundary reinforce the stop
+decision. No narrative feature proceeds to a portfolio. A return-blind macro
+regime data layer or genuinely future reports may be built next, but this sample
+cannot be reused to tune an adjusted narrative rule.

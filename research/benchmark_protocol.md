@@ -46,3 +46,10 @@ Lagged MOM60 and 20-session volatility are attached using information ending at
 the previous reference-session close, but are not retroactively introduced into
 the raw estimator. Adjusted analysis requires a new frozen protocol that
 acknowledges these descriptive results have already been observed.
+
+The completed adjusted protocol uses one primary feature per model, the matching
+text-length control, lagged MOM60, lagged 20-session volatility, and asset-group
+fixed effects. Pooled uncertainty is clustered by report event; dispersion uses
+frozen Newey-West lags. Student t reference distributions and separate
+Benjamini-Hochberg families are mandatory. No nominal result may replace its
+adjusted q-value, and adjusted evidence remains post-descriptive exploratory.

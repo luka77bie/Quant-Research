@@ -34,6 +34,10 @@
 - The frozen market-relation audit accounts for all 5,184 planned
   report-protocol-window-symbol combinations. It retains 4,874 usable outcomes,
   logs 310 exclusions, and has zero lagged-control lookahead violations.
+- The post-descriptive adjustment grid reports all 99 pooled models, 594
+  asset-group coefficients, and 99 dispersion models with no numerical
+  exclusions. All 198 multiplicity-adjusted primary and dispersion tests have
+  q-values above 0.10.
 
 ## Previous Provider Failure
 
@@ -66,3 +70,8 @@ keep one Spearman sign across all nine delay-window specifications. Portfolio
 construction and specification selection remain blocked. The next research
 artifact must be frozen before any adjusted analysis and must treat the existing
 descriptive outputs as already observed exploratory evidence.
+
+The adjusted stage has now applied that protocol. Its closest pooled result has
+`q=0.10099`, above the frozen 0.10 reference threshold; dispersion has minimum
+`q=0.39365`. The candidate count is therefore zero. This is a modeling stop, not
+a data-pipeline failure.

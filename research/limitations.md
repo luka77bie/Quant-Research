@@ -57,6 +57,22 @@
 - All narrative records remain publication-time reconstructions. A zero
   lookahead violation in the date join does not resolve historical PDF revision
   risk or establish causal interpretation.
+- CR1 and Newey-West uncertainty estimates remain asymptotic approximations even
+  with conservative Student t reference distributions. Thirty-one to 32 events
+  are not enough to make boundary p-values stable.
+- The adjusted protocol's lowest pooled q-value is 0.10099 against a frozen 0.10
+  reference threshold. Its pass/fail status is formally clear but numerically
+  close, so it should be described as sensitive rather than as proof of no
+  relationship.
+- Benjamini-Hochberg tests are correlated because timing protocols share reports
+  and forward windows overlap. The correction reduces selection risk but does
+  not turn this surface into independent evidence.
+- Equal-weight asset-group composition changes as ETFs become eligible. Fixed
+  effects control persistent group means, not every change in within-group fund
+  composition or exposure definition.
+- The reference-distribution convention was added after an implementation
+  rehearsal exposed an omission in protocol v1. Repository history preserves
+  the amendment, and all adjusted evidence remains explicitly exploratory.
 
 No output from this repository should be described as live-trading-ready until
 corporate actions, spreads, taxes, market impact, operational monitoring, and

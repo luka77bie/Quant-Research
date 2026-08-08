@@ -33,8 +33,10 @@ def build_run_manifest(
         "code": {"commit": commit, "dirty": dirty},
         "environment": {
             "python": platform.python_version(),
+            "numpy": _package_version("numpy"),
             "pandas": _package_version("pandas"),
             "pypdf": _package_version("pypdf"),
+            "scipy": _package_version("scipy"),
             "project": _package_version("narrative-regime-etf-allocation"),
         },
         "input": {
