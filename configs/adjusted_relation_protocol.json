@@ -1,7 +1,8 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "status": "frozen_before_adjusted_market_relationships",
   "evidence_status": "post_descriptive_exploratory",
+  "revision_note": "v1 omitted the inference reference distribution; its preliminary output was rejected before formal reporting",
   "descriptive_results_already_observed_at_commit": "e321acd80dd222fbd46ef92e56549a818374291e",
   "timing_protocols": [
     "delay_24h",
@@ -39,6 +40,7 @@
       "outcome": "equal_weight_forward_return",
       "formula": "z_outcome ~ z_feature + z_measurement_control + z_lagged_mom60 + z_lagged_volatility20 + asset_group_fixed_effects",
       "covariance": "record_id_cluster_robust_cr1",
+      "reference_distribution": "student_t_with_event_clusters_minus_one_degrees_of_freedom",
       "minimum_event_clusters": 24
     },
     "secondary_asset_group": {
@@ -51,6 +53,7 @@
       "outcome": "cross_sectional_return_dispersion",
       "formula": "z_outcome ~ z_feature + z_measurement_control + z_mean_lagged_mom60 + z_mean_lagged_volatility20",
       "covariance": "newey_west_bartlett",
+      "reference_distribution": "student_t_with_residual_degrees_of_freedom",
       "hac_lags_by_window": {"5": 0, "20": 0, "60": 1},
       "minimum_events": 24
     }

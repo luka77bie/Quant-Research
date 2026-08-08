@@ -33,11 +33,21 @@ The primary model pools six equal-weight asset-group outcomes and includes
 asset-group fixed effects. Uncertainty is CR1 cluster-robust by `record_id`, the
 quarterly report event. This prevents six asset groups exposed to the same text
 from being counted as six independent narrative observations.
+Two-sided tests and 95% intervals use a Student t reference distribution with
+event-cluster count minus one degrees of freedom.
 
 Secondary models report one coefficient per asset group without p-values. A
 separate event-level model relates the same feature and controls to
 cross-sectional return dispersion; it uses pre-specified Bartlett Newey-West
 lags of zero for 5- and 20-session outcomes and one for 60-session outcomes.
+Its tests use a Student t reference distribution with residual degrees of
+freedom.
+
+Protocol v1 froze the model grid and covariance estimators but omitted the
+reference distribution. A preliminary implementation used a normal
+approximation. That output is rejected rather than reported. Version 2 records
+the conservative small-sample t convention before the formal output is
+generated; the repository history preserves both versions of this decision.
 
 Models require at least 24 event clusters or events. Rank deficiency, a design
 condition number above 1,000, a predictor standard deviation at or below

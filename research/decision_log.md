@@ -221,3 +221,16 @@ adjustment covers all 99 pooled tests and all 99 dispersion tests separately.
 All three timing rules and all three horizons remain mandatory. Numerical gate
 failures are reported as exclusions. No adjusted result permits portfolio
 construction, and independent validation remains required.
+
+## 2026-08-08: Amend the small-sample reference distribution
+
+Protocol v1 specified CR1 cluster covariance and Newey-West covariance but did
+not specify whether test statistics used a normal or Student t reference
+distribution. The first implementation rehearsal exposed that omission and its
+normal-approximation output is rejected before formal reporting.
+
+Protocol v2 keeps the model grid, controls, covariance estimators, multiplicity
+families, and 10% reference FDR unchanged. It adds the more conservative Student
+t convention: event-cluster count minus one degrees of freedom for pooled
+models and residual degrees of freedom for dispersion models. The amendment is
+logged because this choice can affect a boundary result in a 31-event sample.
