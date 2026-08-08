@@ -1,4 +1,4 @@
-# Data Gate Status: 2026-08-06
+# Data Gate Status: 2026-08-08
 
 ## Passed
 
@@ -31,6 +31,9 @@
 - Stability diagnostics cover all 19 numeric policy features. All eight missing
   observations are expected first-quarter values; there are no unexpected
   missing values, infinities, or zero-variance features.
+- The frozen market-relation audit accounts for all 5,184 planned
+  report-protocol-window-symbol combinations. It retains 4,874 usable outcomes,
+  logs 310 exclusions, and has zero lagged-control lookahead violations.
 
 ## Previous Provider Failure
 
@@ -54,3 +57,12 @@ The strict point-in-time modeling gate therefore remains blocked. Extracted
 text may be used only for a clearly labelled publication-time reconstruction
 with signal-delay sensitivity. It may not support a strictly point-in-time
 backtest or headline claim.
+
+## Current Modeling Decision
+
+The pre-model descriptive gate passes computationally, but it does not supply a
+predictive claim. Only 12 of 66 primary feature-by-asset-group relationships
+keep one Spearman sign across all nine delay-window specifications. Portfolio
+construction and specification selection remain blocked. The next research
+artifact must be frozen before any adjusted analysis and must treat the existing
+descriptive outputs as already observed exploratory evidence.

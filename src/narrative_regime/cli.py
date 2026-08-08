@@ -37,6 +37,10 @@ from narrative_regime.narrative.extraction import (
     extraction_summary,
 )
 from narrative_regime.narrative.features import build_policy_features
+from narrative_regime.narrative.market_relations import (
+    build_descriptive_market_relations,
+    load_market_relation_protocol,
+)
 from narrative_regime.narrative.sections import (
     parse_policy_sections,
     section_summary,
@@ -180,6 +184,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     narrative_diagnostics.add_argument("--features", type=Path, required=True)
     narrative_diagnostics.add_argument("--output-dir", type=Path, required=True)
+
+    market_relations = subparsers.add_parser(
+        "market-relations",
+        help="run frozen descriptive narrative-market relationship protocol",
+    )
+    market_relations.add_argument("--features", type=Path, required=True)
+    market_relations.add_argument("--schedule", type=Path, required=True)
+    market_relations.add_argument("--prices", type=Path, required=True)
+    market_relations.add_argument("--universe", type=Path, required=True)
+    market_relations.add_argument("--protocol", type=Path, required=True)
+    market_relations.add_argument("--reference-symbol", default="510300")
+    market_relations.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -946,6 +962,87 @@ def run_narrative_diagnostics(args: argparse.Namespace) -> int:
     return 0 if result.summary["diagnostic_gate"] == "pass" else 1
 
 
+def run_market_relations(args: argparse.Namespace) -> int:
+    features = pd.read_csv(args.features, dtype={"record_id": str})
+    schedule = pd.read_csv(args.schedule, dtype={"record_id": str})
+    prices = pd.read_csv(args.prices, dtype={"symbol": str})
+    universe = pd.read_csv(args.universe, dtype={"symbol": str})
+    protocol = load_market_relation_protocol(args.protocol)
+    result = build_descriptive_market_relations(
+        features,
+        schedule,
+        prices,
+        universe,
+        protocol,
+        reference_symbol=args.reference_symbol,
+    )
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    output_frames = {
+        "market_relation_audit.csv": result.audit,
+        "market_relation_panel.csv": result.panel,
+        "asset_group_outcomes.csv": result.asset_group_outcomes,
+        "dispersion_outcomes.csv": result.dispersion_outcomes,
+        "symbol_relations.csv": result.symbol_relations,
+        "asset_group_relations.csv": result.asset_group_relations,
+        "dispersion_relations.csv": result.dispersion_relations,
+    }
+    output_paths = []
+    for filename, frame in output_frames.items():
+        path = args.output_dir / filename
+        frame.to_csv(path, index=False)
+        output_paths.append(path)
+    summary_path = args.output_dir / "market_relation_summary.json"
+    summary_path.write_text(
+        json.dumps(result.summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    output_paths.append(summary_path)
+    manifest = build_run_manifest(
+        input_path=args.features,
+        additional_inputs=[args.schedule, args.prices, args.universe, args.protocol],
+        command=[
+            "nrea",
+            "market-relations",
+            "--features",
+            str(args.features),
+            "--schedule",
+            str(args.schedule),
+            "--prices",
+            str(args.prices),
+            "--universe",
+            str(args.universe),
+            "--protocol",
+            str(args.protocol),
+            "--reference-symbol",
+            args.reference_symbol,
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "protocol_status": protocol["status"],
+            "timing_protocols": protocol["timing_protocols"],
+            "forward_windows_reference_sessions": protocol[
+                "forward_windows_reference_sessions"
+            ],
+            "return_convention": protocol["return_convention"],
+            "control_convention": protocol["control_convention"],
+            "portfolio_constructed": False,
+            "specification_selected": False,
+            "inferential_tests_performed": False,
+            "research_use": "exploratory_only",
+        },
+        outputs=output_paths,
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "market_relation_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(result.summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if result.summary["market_relation_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -974,6 +1071,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_narrative_timing(args)
     if args.command == "narrative-diagnostics":
         return run_narrative_diagnostics(args)
+    if args.command == "market-relations":
+        return run_market_relations(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

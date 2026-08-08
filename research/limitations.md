@@ -43,6 +43,20 @@
   proxy; it is not an exact reproduction of the AKShare amount field.
 - The attention control uses only market observables. Calling it a narrative or
   AI signal would be a construct-validity error even when its returns improve.
+- The narrative sample has only 32 quarterly events. Change features have 31
+  observations, and recently listed ETFs can have as few as 20 usable events.
+- The 5-, 20-, and 60-session outcomes overlap in calendar time. Their
+  correlations are not independent replications, and no p-value or confidence
+  interval is reported at the descriptive stage.
+- Reporting 19 features across three delays, three horizons, 18 symbols, six
+  asset groups, and dispersion creates a large multiple-comparison surface.
+  Large individual correlations must not be selected after inspection.
+- Lagged momentum and volatility are attached to the event panel but are not
+  used in the current unadjusted Pearson and Spearman tables. Any adjusted model
+  requires a separately frozen specification and clustered uncertainty design.
+- All narrative records remain publication-time reconstructions. A zero
+  lookahead violation in the date join does not resolve historical PDF revision
+  risk or establish causal interpretation.
 
 No output from this repository should be described as live-trading-ready until
 corporate actions, spreads, taxes, market impact, operational monitoring, and

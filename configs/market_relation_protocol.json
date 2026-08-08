@@ -35,6 +35,11 @@
     "lagged_20_session_realized_volatility",
     "asset_group"
   ],
+  "control_convention": {
+    "information_cutoff": "activation_previous_reference_session_close",
+    "momentum_formula": "prior_close / close_60_reference_sessions_before_prior - 1",
+    "volatility_formula": "sample_std_last_20_close_returns_times_sqrt_252"
+  },
   "feature_roles": {
     "primary_levels": [
       "term_density_per_1000_accommodation",

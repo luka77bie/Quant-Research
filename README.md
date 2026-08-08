@@ -3,7 +3,7 @@
 [![CI](https://github.com/luka77bie/Quant-Research/actions/workflows/ci.yml/badge.svg)](https://github.com/luka77bie/Quant-Research/actions/workflows/ci.yml)
 
 Status: qualified market-data panel, frozen MOM60 baseline, and completed
-market-attention control reproduction.
+pre-model narrative-market relationship audit.
 
 This project studies a narrower follow-up question to
 [`narrative-aware-etf-rotation`](https://github.com/luka77bie/narrative-aware-etf-rotation):
@@ -246,6 +246,26 @@ nrea narrative-diagnostics \
   --output-dir outputs/policy_feature_diagnostics
 ```
 
+Execute every frozen feature, delay, horizon, and ETF combination without
+constructing a portfolio:
+
+```bash
+nrea market-relations \
+  --features outputs/policy_features/policy_features.csv \
+  --schedule outputs/narrative_timing/narrative_activation_schedule.csv \
+  --prices data/processed/common_sample_tencent/common_sample.csv \
+  --universe configs/etf_universe.csv \
+  --protocol configs/market_relation_protocol.json \
+  --reference-symbol 510300 \
+  --output-dir outputs/descriptive_market_relations
+```
+
+This command audits all 5,184 planned symbol-window combinations, writes every
+exclusion reason, attaches controls available by the previous reference-session
+close, and reports unadjusted Pearson and Spearman relationships. It does not
+run inference, select a specification, or simulate a strategy. See
+[`research/descriptive_market_relation_report.md`](research/descriptive_market_relation_report.md).
+
 The downloader caches each PDF independently, retries failures, rejects
 unapproved domains and non-PDF responses, and locks reviewed checksums in the
 catalog. All 32 quarterly documents from 2018 through 2025 are archived and
@@ -277,7 +297,10 @@ publication-time text diagnostics may proceed only under the qualified
 exploratory protocol. The frozen diagnostics use no return data and create no
 composite score. The 24-hour, 48-hour, and next-month session joins pass with no
 lookahead violations. Feature stability diagnostics pass with only expected
-first-observation missingness; redundant representations remain audit-only.
+first-observation missingness; redundant representations remain audit-only. The
+descriptive relationship audit covers every frozen combination with zero
+control-date violations, but most primary-feature signs are not stable across
+delay and horizon choices. Strategy construction remains stopped.
 
 ## License
 

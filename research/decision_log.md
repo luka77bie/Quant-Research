@@ -177,3 +177,30 @@ not performance-based feature selection.
 The market relationship protocol is frozen at 5, 20, and 60 reference sessions
 for all three timing rules. It prohibits choosing a feature, delay, or window
 from observed results and prohibits portfolio construction at this stage.
+
+## 2026-08-08: Complete the descriptive market-relation audit
+
+The frozen protocol produces an explicit row for all 5,184 combinations of 32
+reports, three timing rules, three forward windows, and 18 ETFs. Of these, 4,874
+are usable. The 310 exclusions comprise 270 pre-listing combinations, 36 cases
+without 60-session control history, three non-tradable activation endpoints,
+and one non-tradable end endpoint. No control ends on or after activation.
+
+All 19 frozen numeric features are reported through per-symbol, equal-weight
+asset-group, and cross-sectional-dispersion outcomes. The output contains raw
+Pearson and Spearman coefficients only. Lagged MOM60 and 20-session volatility
+are attached to the panel but not used to imply an adjusted or causal result.
+There is no inference, portfolio, or result-driven specification selection.
+
+Sign stability is limited. Across the 11 primary features, only 27 of 198
+symbol-feature groups, 12 of 66 asset-group-feature groups, and 2 of 11
+dispersion-feature groups retain one Spearman sign across all nine timing and
+horizon specifications. The median absolute asset-group correlation difference
+is about 0.028 between the 24- and 48-hour delays, but about 0.115 between the
+24-hour and next-month rules. These are sensitivity diagnostics, not independent
+tests.
+
+The computational gate passes, but the evidence does not justify strategy
+construction. Any adjusted relation model must be specified in a new protocol
+that treats these raw outcomes as observed exploratory evidence. Strict
+point-in-time claims remain blocked by unresolved historical PDF identity.

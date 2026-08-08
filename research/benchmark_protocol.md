@@ -40,3 +40,9 @@ Before any combined model, `configs/market_relation_protocol.json` freezes 5,
 rules. Close-to-close Tencent qfq outcomes begin at the activation-session close.
 Every frozen primary feature, delay, and horizon must be reported; this stage
 cannot choose a preferred specification or construct a portfolio.
+
+The completed descriptive stage reports raw Pearson and Spearman relationships.
+Lagged MOM60 and 20-session volatility are attached using information ending at
+the previous reference-session close, but are not retroactively introduced into
+the raw estimator. Adjusted analysis requires a new frozen protocol that
+acknowledges these descriptive results have already been observed.
