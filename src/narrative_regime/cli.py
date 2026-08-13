@@ -37,6 +37,10 @@ from narrative_regime.macro.discovery import (
     build_coverage_catalog,
 )
 from narrative_regime.macro.pilot import audit_macro_release_pilot
+from narrative_regime.macro.search_backfill import (
+    NbsSearchBackfill,
+    apply_reviewed_seeds,
+)
 from narrative_regime.macro.templates import audit_template_drift
 from narrative_regime.narrative.adjusted_relations import (
     build_adjusted_market_relations,
@@ -263,6 +267,23 @@ def build_parser() -> argparse.ArgumentParser:
     macro_discovery.add_argument("--end", default="2025-12")
     macro_discovery.add_argument("--attempts", type=int, default=3)
     macro_discovery.add_argument("--output-dir", type=Path, required=True)
+
+    macro_backfill = subparsers.add_parser(
+        "macro-catalog-backfill",
+        help="backfill missing NBS months through exact-title official search",
+    )
+    macro_backfill.add_argument("--catalog", type=Path, required=True)
+    macro_backfill.add_argument("--attempts", type=int, default=3)
+    macro_backfill.add_argument("--max-pages", type=int, default=5)
+    macro_backfill.add_argument("--output-dir", type=Path, required=True)
+
+    macro_seeds = subparsers.add_parser(
+        "macro-catalog-apply-seeds",
+        help="apply reviewed official candidates pending article validation",
+    )
+    macro_seeds.add_argument("--catalog", type=Path, required=True)
+    macro_seeds.add_argument("--seeds", type=Path, required=True)
+    macro_seeds.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -1391,6 +1412,104 @@ def run_macro_catalog_discovery(args: argparse.Namespace) -> int:
     return 0 if summary["catalog_discovery_gate"] == "pass" else 1
 
 
+def run_macro_catalog_backfill(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    response_dir = args.output_dir / "search_responses"
+    backfill = NbsSearchBackfill(
+        attempts=args.attempts, max_pages=args.max_pages
+    )
+    updated, audit, summary = backfill.backfill(
+        catalog, response_dir=response_dir
+    )
+    catalog_path = args.output_dir / "macro_monthly_source_catalog_backfilled.csv"
+    audit_path = args.output_dir / "macro_catalog_backfill_audit.csv"
+    summary_path = args.output_dir / "macro_catalog_backfill_summary.json"
+    updated.to_csv(catalog_path, index=False)
+    audit.to_csv(audit_path, index=False)
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    response_paths = sorted(response_dir.glob("*.json"))
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        additional_inputs=response_paths,
+        command=[
+            "nrea",
+            "macro-catalog-backfill",
+            "--catalog",
+            str(args.catalog),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "search_scope": "NBS exact title",
+            "allowed_domain": "stats.gov.cn",
+            "minimum_family_coverage": 0.95,
+            "maximum_search_pages": args.max_pages,
+            "etf_returns_read": False,
+            "regime_thresholds_constructed": False,
+        },
+        outputs=[catalog_path, audit_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_catalog_backfill_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if summary["search_backfill_gate"] == "pass" else 1
+
+
+def run_macro_catalog_apply_seeds(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    seeds = pd.read_csv(args.seeds, dtype=str, keep_default_na=False)
+    updated, audit, summary = apply_reviewed_seeds(catalog, seeds)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    catalog_path = args.output_dir / "macro_monthly_source_catalog_seeded.csv"
+    audit_path = args.output_dir / "macro_catalog_seed_audit.csv"
+    summary_path = args.output_dir / "macro_catalog_seed_summary.json"
+    updated.to_csv(catalog_path, index=False)
+    audit.to_csv(audit_path, index=False)
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        additional_inputs=[args.seeds],
+        command=[
+            "nrea",
+            "macro-catalog-apply-seeds",
+            "--catalog",
+            str(args.catalog),
+            "--seeds",
+            str(args.seeds),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "accepted_status": "pending_article_validation",
+            "minimum_family_coverage": 0.95,
+            "etf_returns_read": False,
+            "regime_thresholds_constructed": False,
+        },
+        outputs=[catalog_path, audit_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_catalog_seed_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return (
+        0
+        if summary["source_catalog_gate"] == "pass_pending_article_validation"
+        else 1
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -1433,6 +1552,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_macro_template_audit(args)
     if args.command == "macro-catalog-discovery":
         return run_macro_catalog_discovery(args)
+    if args.command == "macro-catalog-backfill":
+        return run_macro_catalog_backfill(args)
+    if args.command == "macro-catalog-apply-seeds":
+        return run_macro_catalog_apply_seeds(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

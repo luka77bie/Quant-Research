@@ -7,8 +7,8 @@ and liquid ETF allocation.
 
 Status: Study 01 is complete as a qualified negative result. Study 02 has passed
 its official-release, current-page evidence, and cross-year template gates;
-its reproducible official-index discovery layer is now audited. Strict
-historical-version verification and full monthly coverage remain open.
+its 2018-2025 source catalog now passes the 95% family-coverage gate. Article
+validation and strict historical-version verification remain open.
 
 ## Research identity
 
@@ -29,7 +29,7 @@ by itself.
 | Study | Question | Status | Main decision |
 | --- | --- | --- | --- |
 | 01 Narrative-Regime ETF Allocation | Does PBOC policy language add information beyond ETF momentum and market controls? | Complete, exploratory | No adjusted candidate; do not construct a narrative portfolio |
-| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Catalog discovery audited | Resolve explicit source gaps before defining regimes |
+| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Source catalog gate passed | Validate every article before defining regimes |
 | 03 Policy Event Research | Which scheduled policy events create repeatable cross-asset repricing after realistic delays? | Planned | Start only after Study 02 passes its data gate |
 
 See [`lab/roadmap_v1_1.md`](lab/roadmap_v1_1.md) for scope and sequencing,
@@ -89,10 +89,24 @@ nrea macro-catalog-discovery \
   --output-dir outputs/macro_catalog_discovery
 ```
 
-The current catalog discovers 53/96 NBS PMI, 53/96 NBS CPI, and 95/96 PBOC M2
-records. The gate remains blocked because the NBS public index ends at August
-2021. Missing periods stay explicit in `configs/macro_monthly_source_catalog.csv`;
-see `research/macro_catalog_discovery_report.md` for the next gate.
+The index-only pass discovers 53/96 NBS PMI, 53/96 NBS CPI, and 95/96 PBOC M2
+records. Exact-title official search backfills 72 NBS records; 14 reviewed
+official candidates complete both NBS families pending article validation.
+PBOC M2 remains at 95/96 with January 2025 explicitly missing. See
+`research/macro_catalog_backfill_report.md` for the next gate.
+
+Reproduce the exact-title backfill and apply the reviewed residual candidates:
+
+```bash
+nrea macro-catalog-backfill \
+  --catalog outputs/macro_catalog_discovery/macro_monthly_source_catalog.csv \
+  --output-dir outputs/macro_catalog_backfill
+
+nrea macro-catalog-apply-seeds \
+  --catalog outputs/macro_catalog_backfill/macro_monthly_source_catalog_backfilled.csv \
+  --seeds configs/macro_catalog_backfill_seeds.csv \
+  --output-dir outputs/macro_catalog_seeded
+```
 
 ## Study 01: Narrative-Regime ETF Allocation
 
