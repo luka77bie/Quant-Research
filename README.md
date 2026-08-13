@@ -6,7 +6,7 @@ Personal systematic strategy research focused on Chinese policy, macro regimes,
 and liquid ETF allocation.
 
 Status: Study 01 is complete as a qualified negative result. Study 02 has passed
-its 12-record official-release feasibility pilot at publication-record level;
+its 12-record official-release feasibility and current-page evidence gates;
 strict historical-version verification remains open.
 
 ## Research identity
@@ -28,7 +28,7 @@ by itself.
 | Study | Question | Status | Main decision |
 | --- | --- | --- | --- |
 | 01 Narrative-Regime ETF Allocation | Does PBOC policy language add information beyond ETF momentum and market controls? | Complete, exploratory | No adjusted candidate; do not construct a narrative portfolio |
-| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Data pilot passed, publication records only | Archive and verify official release evidence before constructing regimes |
+| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Current-page evidence gate passed | Test deterministic extraction across years before constructing regimes |
 | 03 Policy Event Research | Which scheduled policy events create repeatable cross-asset repricing after realistic delays? | Planned | Start only after Study 02 passes its data gate |
 
 See [`lab/roadmap_v1_1.md`](lab/roadmap_v1_1.md) for scope and sequencing,
@@ -49,6 +49,25 @@ records without reading ETF returns. It distinguishes original release pages,
 official retrospective confirmation, revision notes, and historical-snapshot
 status. The current result is documented in
 [`research/macro_release_pilot_report.md`](research/macro_release_pilot_report.md).
+
+Archive and audit the registered official-page evidence:
+
+```bash
+nrea macro-evidence-fetch \
+  --catalog configs/macro_release_pilot.csv \
+  --evidence configs/macro_release_evidence.csv \
+  --root .
+
+nrea macro-evidence-audit \
+  --catalog configs/macro_release_pilot.csv \
+  --evidence configs/macro_release_evidence.csv \
+  --root . \
+  --output-dir outputs/macro_evidence
+```
+
+The committed evidence ledger locks page checksums and exact visible-text
+fragments for release timing and values. Cached HTML remains local under
+`data/raw/macro_release_pages/`.
 
 ## Study 01: Narrative-Regime ETF Allocation
 

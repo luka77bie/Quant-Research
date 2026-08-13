@@ -60,6 +60,11 @@ passes with 11 original official release pages and one official retrospective
 confirmation. Strict point-in-time verification remains 0 of 12 because no
 historical page snapshot is locked.
 
+The follow-on evidence audit also passes for all 12 current pages: checksums are
+locked and exact visible-text fragments verify every registered release date or
+time and value. Eleven records have minute-level release evidence. The March
+2023 M2 record has date-level evidence only and uses end-of-day availability.
+
 ## Fastest Falsification Test
 
 Before building a regime engine, select one growth, one inflation, and one

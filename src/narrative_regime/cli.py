@@ -26,6 +26,10 @@ from narrative_regime.data.panel import (
     validate_calendar_exceptions,
 )
 from narrative_regime.data.providers import build_providers
+from narrative_regime.macro.archive import (
+    MacroEvidenceArchive,
+    audit_macro_evidence,
+)
 from narrative_regime.macro.pilot import audit_macro_release_pilot
 from narrative_regime.narrative.adjusted_relations import (
     build_adjusted_market_relations,
@@ -216,6 +220,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     macro_pilot.add_argument("--catalog", type=Path, required=True)
     macro_pilot.add_argument("--output-dir", type=Path, required=True)
+
+    macro_fetch = subparsers.add_parser(
+        "macro-evidence-fetch",
+        help="cache reviewed official macro release pages with checksums",
+    )
+    macro_fetch.add_argument("--catalog", type=Path, required=True)
+    macro_fetch.add_argument("--evidence", type=Path, required=True)
+    macro_fetch.add_argument("--root", type=Path, default=Path.cwd())
+    macro_fetch.add_argument("--attempts", type=int, default=3)
+    macro_fetch.add_argument("--refresh", action="store_true")
+
+    macro_audit = subparsers.add_parser(
+        "macro-evidence-audit",
+        help="verify locked macro page checksums and registered evidence text",
+    )
+    macro_audit.add_argument("--catalog", type=Path, required=True)
+    macro_audit.add_argument("--evidence", type=Path, required=True)
+    macro_audit.add_argument("--root", type=Path, default=Path.cwd())
+    macro_audit.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -1177,6 +1200,76 @@ def run_macro_release_pilot(args: argparse.Namespace) -> int:
     )
 
 
+def run_macro_evidence_fetch(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    evidence = pd.read_csv(args.evidence, dtype=str, keep_default_na=False)
+    archive = MacroEvidenceArchive(args.root, attempts=args.attempts)
+    results = archive.fetch_catalog(catalog, evidence, refresh=args.refresh)
+    summary_path = args.root / "data" / "manifests" / "macro_evidence_fetch.csv"
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    results.to_csv(summary_path, index=False)
+    print(results.to_string(index=False))
+    print(f"summary={summary_path}")
+    return 0 if results["status"].isin({"downloaded", "cached"}).all() else 1
+
+
+def run_macro_evidence_audit(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    evidence = pd.read_csv(args.evidence, dtype=str, keep_default_na=False)
+    audit, summary = audit_macro_evidence(args.root, catalog, evidence)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    audit_path = args.output_dir / "macro_evidence_audit.csv"
+    summary_path = args.output_dir / "macro_evidence_summary.json"
+    audit.to_csv(audit_path, index=False)
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    raw_inputs = []
+    for record_id in audit["record_id"]:
+        base = args.root / "data" / "raw" / "macro_release_pages" / str(record_id)
+        raw_inputs.extend(
+            path
+            for path in (base.with_suffix(".html"), base.with_suffix(".meta.json"))
+            if path.exists()
+        )
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        additional_inputs=[args.evidence, *raw_inputs],
+        command=[
+            "nrea",
+            "macro-evidence-audit",
+            "--catalog",
+            str(args.catalog),
+            "--evidence",
+            str(args.evidence),
+            "--root",
+            str(args.root),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "required_records": 12,
+            "evidence_matching": "normalized_exact_substring",
+            "etf_returns_read": False,
+            "regime_thresholds_constructed": False,
+        },
+        outputs=[audit_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_evidence_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(audit.to_string(index=False))
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return (
+        0
+        if summary["macro_evidence_gate"] == "pass_current_page_evidence_only"
+        else 1
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -1211,6 +1304,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_adjusted_relations(args)
     if args.command == "macro-release-pilot":
         return run_macro_release_pilot(args)
+    if args.command == "macro-evidence-fetch":
+        return run_macro_evidence_fetch(args)
+    if args.command == "macro-evidence-audit":
+        return run_macro_evidence_audit(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

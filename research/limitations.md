@@ -22,9 +22,9 @@
   records, not unchanged historical page versions. The 12-record Study 02 pilot
   has zero contemporaneous snapshots and cannot yet support a strict
   point-in-time regime backtest.
-- The March 2023 M2 pilot timestamp is conservatively reconstructed from an
-  official retrospective confirmation rather than an original release page.
-  It requires independent dated evidence before strict intraday alignment.
+- The March 2023 M2 pilot has official date-level evidence but no intraday
+  timestamp or original release page. It is conservatively available at end of
+  day and cannot support strict intraday alignment.
 - A currently downloadable, versioned official PDF still may have been replaced
   after publication. Without a historical snapshot and matching checksum it is
   provisional, not strictly point-in-time verified.

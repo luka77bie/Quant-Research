@@ -45,12 +45,16 @@
 
 ## Current Macro Blocker
 
-The Study 02 pilot passes only at publication-record level. None of the 12
-records has a locked contemporaneous snapshot, and the March 2023 M2 release
-time is conservatively reconstructed from an official retrospective source.
-Macro-state construction and ETF payoff joins remain blocked until the pages
-are archived by checksum and their displayed timestamps and values are verified
-under deterministic extraction rules.
+The Study 02 current-page evidence gate passes. All 12 official pages are cached
+locally with retrieval metadata and committed SHA-256 values. Exact normalized
+visible-text fragments verify all 12 release-date or timestamp claims and all
+12 values. Eleven timestamps have minute precision; the March 2023 M2 record
+has date precision only and is conservatively available at end of day.
+
+None of the 12 records has a locked contemporaneous snapshot, so strict
+point-in-time status remains provisional. Macro-state construction and ETF
+payoff joins remain blocked until deterministic extraction is tested across
+multiple source years and transformation and release-lag rules are frozen.
 
 ## Previous Provider Failure
 

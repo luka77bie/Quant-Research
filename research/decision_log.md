@@ -292,3 +292,17 @@ No record has a locked contemporaneous historical page snapshot, so strict
 point-in-time verification remains 0 of 12. The next gate is to cache official
 pages by checksum and verify release time and value against page content. Macro
 states and ETF payoff joins remain prohibited until that evidence layer passes.
+
+## 2026-08-13: Pass the current-page macro evidence gate
+
+All 12 pilot pages were retrieved successfully and cached independently with
+retrieval metadata. The evidence ledger locks each observed SHA-256 and exact
+visible-text fragments for the release date or time and headline value. The
+offline audit verifies 12 of 12 timing claims and 12 of 12 values without
+reading ETF outcomes.
+
+Eleven release records have minute-level evidence. The March 2023 M2 official
+retrospective confirmation proves only that the release occurred on April 11,
+so its catalog availability changes from an unsupported 16:30 reconstruction
+to conservative end of day. Strict historical-snapshot verification remains 0
+of 12. The next gate is cross-year source-template testing, not regime fitting.

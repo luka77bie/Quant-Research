@@ -2,9 +2,9 @@
 
 ## Decision
 
-Continue to a source-archiving gate, but do not construct macro regimes yet.
-The pilot passes at publication-record level and remains provisional for strict
-point-in-time use.
+Continue to cross-year source-template testing, but do not construct macro
+regimes yet. The pilot passes at publication-record and current-page evidence
+levels and remains provisional for strict point-in-time use.
 
 ## Scope
 
@@ -26,6 +26,11 @@ tests source feasibility only.
 | Original official release pages | 11 |
 | Official retrospective confirmations | 1 |
 | Current URLs returning HTTP 200 on 2026-08-08 | 12 |
+| Pages archived with locked SHA-256 on 2026-08-13 | 12 |
+| Release evidence verified from visible page text | 12 |
+| Value evidence verified from visible page text | 12 |
+| Minute-precision release evidence | 11 |
+| Date-precision release evidence | 1 |
 | Strict historical snapshots | 0 |
 | ETF outcomes read | No |
 | Regime thresholds constructed | No |
@@ -60,16 +65,33 @@ date. No current page is treated as a contemporaneous historical snapshot. The
 catalog also records revision policy as unstated where the release page does not
 provide one.
 
+The March 2023 M2 retrospective confirmation states that the original release
+occurred on April 11 but does not establish an intraday time. The catalog now
+uses 23:59:59 China time as a conservative end-of-day availability timestamp,
+rather than the previously reconstructed 16:30 value.
+
+## Current-Page Evidence Audit
+
+The follow-on archive stores each current official HTML page atomically with its
+retrieval timestamp, byte count, URL, and SHA-256. A committed evidence ledger
+locks the observed checksum and exact visible-text fragments supporting the
+release date or time and headline value. The audit rejects changed bytes,
+missing metadata, unlocked checksums, unapproved domains, or missing evidence
+text. All 12 records pass this current-page gate.
+
+This result detects future changes relative to the 2026-08-13 retrieval. It does
+not prove that the page was unchanged between its displayed release date and
+retrieval.
+
 ## Next Gate
 
-1. Cache all 12 official pages independently and lock retrieval checksums.
-2. Extract and verify the displayed release timestamp and headline value.
-3. Search for contemporaneous snapshots or independent dated reproductions.
-4. Expand to the full 2018-2025 monthly period only if extraction works under
+1. Sample older and newer years for each source family and test template drift.
+2. Search for contemporaneous snapshots or independent dated reproductions.
+3. Expand to the full 2018-2025 monthly period only if extraction works under
    one deterministic rule per source family.
-5. Freeze transformations and regime thresholds before joining ETF outcomes.
+4. Freeze transformations and regime thresholds before joining ETF outcomes.
 
 ## Reproduction
 
-Run `nrea macro-release-pilot` using the root README command. Outputs include a
-row-level audit, summary, and clean-commit checksum manifest.
+Run the pilot and evidence commands using the root README instructions. Outputs
+include row-level audits, summaries, and checksum manifests.
