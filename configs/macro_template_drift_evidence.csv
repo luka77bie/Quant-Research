@@ -1,0 +1,10 @@
+record_id,expected_page_sha256,release_evidence_text,release_evidence_precision,value_evidence_text
+drift_pmi_2018_12,e23df19d692535d7791dd5fd56dfc68f35b5d0587736a6c85068bb2df6503959,2018/12/31 09:00,minute,中国制造业采购经理指数（PMI）为49.4%
+drift_pmi_2021_12,38e47bca6be33730f0ea489e59ab8ccd2d9af95684fc0aa7d81f3763fa607312,2021/12/31 09:00,minute,制造业采购经理指数（PMI）为50.3%
+drift_pmi_2025_12,c0ddfab5bf8aba69ac58403c3bc514c5d2a8dac060b4fb26337d75a421c6a249,2025/12/31 09:30,minute,制造业采购经理指数（PMI）为50.1%
+drift_cpi_2018_12,6fc7b165472c8b8f9cb13652a965bb090d6a5be3e09948ad97728b93aeab38c9,2019/01/10 09:30,minute,全国居民消费价格同比上涨1.9%
+drift_cpi_2021_12,15935b37f25fc2a8282b40f5c6104c1f2fcc5f9e312a3a8131cd8b3d642724b6,2022/01/12 09:30,minute,全国居民消费价格同比上涨1.5%
+drift_cpi_2025_12,029d16d76ba6c207b46be0cf4a13ca2c88ae431540aec335778644e97830da7f,2026/01/09 09:30,minute,全国居民消费价格同比上涨0.8%
+drift_m2_2018_12,ff28086af36905bb53420e32bbb3c3e17efaba7ced6c476d0d3a284d81535535,2019-01-15 16:00:02,minute,"12月末，广义货币(M2)余额182.67万亿元,同比增长8.1%"
+drift_m2_2021_05,f6b9871154561655045929e64b49ab32d969eac722b332ad28f642566a75d367,2021-06-10 16:00:27,minute,"5月末，广义货币(M2)余额227.55万亿元，同比增长8.3%"
+drift_m2_2024_07,8658c76f6a2746ed12f3c570f5250bbabef62ba180ff042f336d3241f94be03b,2024-08-13 17:01:00,minute,"7月末，广义货币(M2)余额303.31万亿元,同比增长6.3%"

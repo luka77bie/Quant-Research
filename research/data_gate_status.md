@@ -53,8 +53,14 @@ has date precision only and is conservatively available at end of day.
 
 None of the 12 records has a locked contemporaneous snapshot, so strict
 point-in-time status remains provisional. Macro-state construction and ETF
-payoff joins remain blocked until deterministic extraction is tested across
-multiple source years and transformation and release-lag rules are frozen.
+payoff joins remain blocked until full monthly coverage, transformations, and
+release-lag rules are frozen.
+
+The cross-year parser test now passes 9 of 9 official anchor pages: NBS PMI and
+CPI for 2018, 2021, and 2025, plus PBOC M2 for 2018, 2021, and 2024. Each source
+family uses one deterministic release-time and headline-value rule. Full monthly
+catalog coverage, contemporaneous snapshots, transformations, and release-lag
+rules remain open; ETF outcome joins are still prohibited.
 
 ## Previous Provider Failure
 

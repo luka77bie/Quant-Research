@@ -95,11 +95,12 @@ def test_audit_verifies_locked_page_evidence(tmp_path: Path) -> None:
     archive.fetch_catalog(_catalog(), _evidence())
     evidence = _evidence(hashlib.sha256(HTML).hexdigest())
 
-    audit, _ = audit_macro_evidence(tmp_path, _catalog(), evidence)
+    audit, summary = audit_macro_evidence(tmp_path, _catalog(), evidence)
 
     assert audit.loc[0, "current_page_status"] == "ready"
     assert bool(audit.loc[0, "release_evidence_verified"])
     assert bool(audit.loc[0, "value_evidence_verified"])
+    assert summary["macro_evidence_gate"] == "pass_current_page_evidence_only"
 
 
 def test_audit_detects_page_change(tmp_path: Path) -> None:

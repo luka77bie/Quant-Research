@@ -248,7 +248,7 @@ def audit_macro_evidence(
         "regime_thresholds_constructed": False,
         "macro_evidence_gate": (
             "pass_current_page_evidence_only"
-            if len(audit) == 12 and ready == 12
+            if len(audit) > 0 and ready == len(audit)
             else "blocked"
         ),
     }

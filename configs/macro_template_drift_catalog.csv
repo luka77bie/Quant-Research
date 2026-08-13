@@ -1,0 +1,10 @@
+record_id,dimension,source_family,anchor_year,period,release_at,source_url,value,strict_point_in_time_status
+drift_pmi_2018_12,growth,nbs_pmi,2018,2018-12,2018-12-31T09:00:00+08:00,https://www.stats.gov.cn/sj/zxfb/202302/t20230203_1900190.html,49.4,provisional_no_snapshot
+drift_pmi_2021_12,growth,nbs_pmi,2021,2021-12,2021-12-31T09:00:00+08:00,https://www.stats.gov.cn/sj/zxfb/202302/t20230203_1901325.html,50.3,provisional_no_snapshot
+drift_pmi_2025_12,growth,nbs_pmi,2025,2025-12,2025-12-31T09:30:00+08:00,https://www.stats.gov.cn/sj/zxfb/202512/t20251231_1962218.html,50.1,provisional_no_snapshot
+drift_cpi_2018_12,inflation,nbs_cpi,2018,2018-12,2019-01-10T09:30:00+08:00,https://www.stats.gov.cn/sj/zxfb/202302/t20230203_1900194.html,1.9,provisional_no_snapshot
+drift_cpi_2021_12,inflation,nbs_cpi,2021,2021-12,2022-01-12T09:30:00+08:00,https://www.stats.gov.cn/sj/zxfb/202302/t20230203_1901328.html,1.5,provisional_no_snapshot
+drift_cpi_2025_12,inflation,nbs_cpi,2025,2025-12,2026-01-09T09:30:00+08:00,https://www.stats.gov.cn/sj/zxfb/202601/t20260109_1962273.html,0.8,provisional_no_snapshot
+drift_m2_2018_12,liquidity,pbc_m2,2018,2018-12,2019-01-15T16:00:02+08:00,https://www.pbc.gov.cn/diaochatongjisi/116219/116225/370befa3ce2042dfbc414b74f3b397b7/index.html,8.1,provisional_no_snapshot
+drift_m2_2021_05,liquidity,pbc_m2,2021,2021-05,2021-06-10T16:00:27+08:00,https://www.pbc.gov.cn/diaochatongjisi/116219/116225/8547a25bf7384b908b4679dd352cee24/index.html,8.3,provisional_no_snapshot
+drift_m2_2024_07,liquidity,pbc_m2,2024,2024-07,2024-08-13T17:01:00+08:00,https://www.pbc.gov.cn/diaochatongjisi/116219/116225/8980a8a6f1414f649d3443cc09352c2b/index.html,6.3,provisional_no_snapshot

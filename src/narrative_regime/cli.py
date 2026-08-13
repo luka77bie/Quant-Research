@@ -31,6 +31,7 @@ from narrative_regime.macro.archive import (
     audit_macro_evidence,
 )
 from narrative_regime.macro.pilot import audit_macro_release_pilot
+from narrative_regime.macro.templates import audit_template_drift
 from narrative_regime.narrative.adjusted_relations import (
     build_adjusted_market_relations,
     load_adjusted_relation_protocol,
@@ -239,6 +240,14 @@ def build_parser() -> argparse.ArgumentParser:
     macro_audit.add_argument("--evidence", type=Path, required=True)
     macro_audit.add_argument("--root", type=Path, default=Path.cwd())
     macro_audit.add_argument("--output-dir", type=Path, required=True)
+
+    template_audit = subparsers.add_parser(
+        "macro-template-audit",
+        help="audit deterministic macro extraction across source-year anchors",
+    )
+    template_audit.add_argument("--catalog", type=Path, required=True)
+    template_audit.add_argument("--root", type=Path, default=Path.cwd())
+    template_audit.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -1248,7 +1257,7 @@ def run_macro_evidence_audit(args: argparse.Namespace) -> int:
             str(args.output_dir),
         ],
         parameters={
-            "required_records": 12,
+            "catalog_records": len(audit),
             "evidence_matching": "normalized_exact_substring",
             "etf_returns_read": False,
             "regime_thresholds_constructed": False,
@@ -1268,6 +1277,56 @@ def run_macro_evidence_audit(args: argparse.Namespace) -> int:
         if summary["macro_evidence_gate"] == "pass_current_page_evidence_only"
         else 1
     )
+
+
+def run_macro_template_audit(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    audit, summary = audit_template_drift(args.root, catalog)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    audit_path = args.output_dir / "macro_template_drift_audit.csv"
+    summary_path = args.output_dir / "macro_template_drift_summary.json"
+    audit.to_csv(audit_path, index=False)
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    raw_inputs = [
+        args.root
+        / "data"
+        / "raw"
+        / "macro_release_pages"
+        / f"{record_id}.html"
+        for record_id in audit["record_id"]
+    ]
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        additional_inputs=raw_inputs,
+        command=[
+            "nrea",
+            "macro-template-audit",
+            "--catalog",
+            str(args.catalog),
+            "--root",
+            str(args.root),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "required_source_families": ["nbs_pmi", "nbs_cpi", "pbc_m2"],
+            "required_anchors_per_family": 3,
+            "etf_returns_read": False,
+            "regime_thresholds_constructed": False,
+        },
+        outputs=[audit_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_template_drift_run_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(audit.to_string(index=False))
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if summary["template_drift_gate"] == "pass" else 1
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1308,6 +1367,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_macro_evidence_fetch(args)
     if args.command == "macro-evidence-audit":
         return run_macro_evidence_audit(args)
+    if args.command == "macro-template-audit":
+        return run_macro_template_audit(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

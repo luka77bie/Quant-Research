@@ -22,6 +22,9 @@
   records, not unchanged historical page versions. The 12-record Study 02 pilot
   has zero contemporaneous snapshots and cannot yet support a strict
   point-in-time regime backtest.
+- Nine cross-year macro anchors establish parser feasibility, not complete
+  2018-2025 monthly coverage. PBOC M2 source-page discoverability remains a
+  collection risk after official-site migration.
 - The March 2023 M2 pilot has official date-level evidence but no intraday
   timestamp or original release page. It is conservatively available at end of
   day and cannot support strict intraday alignment.

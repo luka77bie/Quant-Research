@@ -306,3 +306,15 @@ retrospective confirmation proves only that the release occurred on April 11,
 so its catalog availability changes from an unsupported 16:30 reconstruction
 to conservative end of day. Strict historical-snapshot verification remains 0
 of 12. The next gate is cross-year source-template testing, not regime fitting.
+
+## 2026-08-13: Pass the cross-year macro template gate
+
+One deterministic parser per source family exactly reproduces the registered
+release timestamp and headline value for nine official pages. NBS PMI and CPI
+each pass 2018, 2021, and 2025 anchors; PBOC M2 passes 2018, 2021, and 2024
+anchors. The audit reads no ETF prices or returns and defines no regime rule.
+
+The result permits construction of the complete monthly official-release
+catalog. It does not establish full coverage or strict point-in-time status.
+The 2025 year-end PBOC M2 original page was not stably discoverable during this
+search, so collection risk remains explicit rather than filled retrospectively.

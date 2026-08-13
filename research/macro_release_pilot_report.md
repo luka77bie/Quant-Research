@@ -85,11 +85,10 @@ retrieval.
 
 ## Next Gate
 
-1. Sample older and newer years for each source family and test template drift.
-2. Search for contemporaneous snapshots or independent dated reproductions.
-3. Expand to the full 2018-2025 monthly period only if extraction works under
-   one deterministic rule per source family.
-4. Freeze transformations and regime thresholds before joining ETF outcomes.
+The cross-year source-template gate is now complete; see
+[`macro_template_drift_report.md`](macro_template_drift_report.md). The next gate
+is a complete 2018-2025 monthly official-release catalog, followed by frozen
+transformations and release-lag conventions before any ETF outcome join.
 
 ## Reproduction
 

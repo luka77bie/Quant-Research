@@ -65,6 +65,11 @@ locked and exact visible-text fragments verify every registered release date or
 time and value. Eleven records have minute-level release evidence. The March
 2023 M2 record has date-level evidence only and uses end-of-day availability.
 
+The cross-year template audit passes 9 of 9 anchor pages: three each for NBS
+PMI, NBS CPI, and PBOC M2. One deterministic parser per source family exactly
+reproduces every registered release timestamp and value. This permits full
+monthly catalog construction, not regime threshold selection or market joins.
+
 ## Fastest Falsification Test
 
 Before building a regime engine, select one growth, one inflation, and one
