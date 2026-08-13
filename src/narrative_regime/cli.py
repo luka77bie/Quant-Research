@@ -30,6 +30,12 @@ from narrative_regime.macro.archive import (
     MacroEvidenceArchive,
     audit_macro_evidence,
 )
+from narrative_regime.macro.discovery import (
+    DEFAULT_INDEX_URLS,
+    MacroCatalogDiscovery,
+    archive_index_pages,
+    build_coverage_catalog,
+)
 from narrative_regime.macro.pilot import audit_macro_release_pilot
 from narrative_regime.macro.templates import audit_template_drift
 from narrative_regime.narrative.adjusted_relations import (
@@ -248,6 +254,15 @@ def build_parser() -> argparse.ArgumentParser:
     template_audit.add_argument("--catalog", type=Path, required=True)
     template_audit.add_argument("--root", type=Path, default=Path.cwd())
     template_audit.add_argument("--output-dir", type=Path, required=True)
+
+    macro_discovery = subparsers.add_parser(
+        "macro-catalog-discovery",
+        help="enumerate official index pages and audit monthly source coverage",
+    )
+    macro_discovery.add_argument("--start", default="2018-01")
+    macro_discovery.add_argument("--end", default="2025-12")
+    macro_discovery.add_argument("--attempts", type=int, default=3)
+    macro_discovery.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -1329,6 +1344,53 @@ def run_macro_template_audit(args: argparse.Namespace) -> int:
     return 0 if summary["template_drift_gate"] == "pass" else 1
 
 
+def run_macro_catalog_discovery(args: argparse.Namespace) -> int:
+    discovery = MacroCatalogDiscovery(attempts=args.attempts)
+    pages = discovery.fetch_indexes(DEFAULT_INDEX_URLS)
+    catalog, candidates, summary = build_coverage_catalog(
+        pages, start=args.start, end=args.end
+    )
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    catalog_path = args.output_dir / "macro_monthly_source_catalog.csv"
+    candidates_path = args.output_dir / "macro_discovery_candidates.csv"
+    summary_path = args.output_dir / "macro_catalog_discovery_summary.json"
+    catalog.to_csv(catalog_path, index=False)
+    candidates.to_csv(candidates_path, index=False)
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    archived_inputs = archive_index_pages(pages, args.output_dir)
+    manifest = build_run_manifest(
+        input_path=archived_inputs[-1],
+        additional_inputs=archived_inputs[:-1],
+        command=[
+            "nrea",
+            "macro-catalog-discovery",
+            "--start",
+            args.start,
+            "--end",
+            args.end,
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "index_urls": DEFAULT_INDEX_URLS,
+            "minimum_family_coverage": 0.95,
+            "etf_returns_read": False,
+            "regime_thresholds_constructed": False,
+        },
+        outputs=[catalog_path, candidates_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_catalog_discovery_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if summary["catalog_discovery_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -1369,6 +1431,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_macro_evidence_audit(args)
     if args.command == "macro-template-audit":
         return run_macro_template_audit(args)
+    if args.command == "macro-catalog-discovery":
+        return run_macro_catalog_discovery(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

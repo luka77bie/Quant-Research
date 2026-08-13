@@ -7,7 +7,8 @@ and liquid ETF allocation.
 
 Status: Study 01 is complete as a qualified negative result. Study 02 has passed
 its official-release, current-page evidence, and cross-year template gates;
-strict historical-version verification and full monthly coverage remain open.
+its reproducible official-index discovery layer is now audited. Strict
+historical-version verification and full monthly coverage remain open.
 
 ## Research identity
 
@@ -28,7 +29,7 @@ by itself.
 | Study | Question | Status | Main decision |
 | --- | --- | --- | --- |
 | 01 Narrative-Regime ETF Allocation | Does PBOC policy language add information beyond ETF momentum and market controls? | Complete, exploratory | No adjusted candidate; do not construct a narrative portfolio |
-| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Cross-year template gate passed | Build the full monthly official-release catalog before defining regimes |
+| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Catalog discovery audited | Resolve explicit source gaps before defining regimes |
 | 03 Policy Event Research | Which scheduled policy events create repeatable cross-asset repricing after realistic delays? | Planned | Start only after Study 02 passes its data gate |
 
 See [`lab/roadmap_v1_1.md`](lab/roadmap_v1_1.md) for scope and sequencing,
@@ -77,6 +78,21 @@ nrea macro-template-audit \
   --root . \
   --output-dir outputs/macro_template_drift
 ```
+
+Enumerate the official source indexes and audit monthly coverage without market
+outcomes:
+
+```bash
+nrea macro-catalog-discovery \
+  --start 2018-01 \
+  --end 2025-12 \
+  --output-dir outputs/macro_catalog_discovery
+```
+
+The current catalog discovers 53/96 NBS PMI, 53/96 NBS CPI, and 95/96 PBOC M2
+records. The gate remains blocked because the NBS public index ends at August
+2021. Missing periods stay explicit in `configs/macro_monthly_source_catalog.csv`;
+see `research/macro_catalog_discovery_report.md` for the next gate.
 
 ## Study 01: Narrative-Regime ETF Allocation
 
