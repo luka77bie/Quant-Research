@@ -2,7 +2,7 @@
 
 ## Status
 
-Frozen before downloading or reading ETF outcomes for this stage.
+Protocol v2, frozen before reading any ETF return or payoff result.
 
 ## Question
 
@@ -16,6 +16,8 @@ not test combined regimes.
 ## Market sample
 
 - Use the existing 18-ETF universe and its six committed asset groups.
+- Use market observations from 1 January 2018 through 31 July 2026 so the
+  December 2025 macro release retains its full 60-session forward endpoint.
 - Respect each ETF's verified listing date and explicit no-trade exceptions.
 - Use `510300` as the reference trading calendar.
 - Require both activation and horizon endpoints to be tradable.
@@ -66,3 +68,12 @@ horizon reporting is allowed.
   frozen multiplicity rule.
 - Even a surviving descriptive comparison requires a separately frozen MOM60
   comparison and allocation rule.
+
+## Pre-outcome amendment
+
+Protocol v1 omitted the market sample end. Implementation review showed that a
+31 December 2025 market cutoff would censor the late-2025 macro observations,
+because their releases and 60-session endpoints occur in 2026. Before computing
+any ETF return, v2 freezes 31 July 2026 as the endpoint already used by the
+project's qualified market sample. No dimension, state, horizon, estimator, or
+reporting threshold changed.

@@ -379,3 +379,15 @@ state, portfolio, or specification selection is permitted.
 The protocol gate passes with `etf_prices_read=false`. The next permitted action
 is to rebuild and audit the Tencent market common sample, then run the complete
 registered atlas without intermediate selection.
+
+## 2026-09-04: Amend payoff protocol market endpoint before outcomes
+
+Protocol v1 did not state the market sample end. A 2025 year-end cutoff would
+mechanically censor late-2025 macro releases and their 60-session outcomes,
+which occur in 2026. No ETF return or payoff result had been computed when this
+omission was found.
+
+Protocol v2 fixes the market range at 2018-01-01 through 2026-07-31, matching the
+project's previously qualified market horizon. All state pairs, forward
+windows, execution delay, estimators, multiplicity rules, and stop conditions
+remain unchanged.

@@ -18,7 +18,7 @@ def load_payoff_atlas_protocol(path: Path) -> dict[str, object]:
 def validate_payoff_atlas_protocol(protocol: dict[str, object]) -> None:
     if protocol.get("status") != "frozen_before_etf_outcomes":
         raise ValueError("payoff atlas protocol is not frozen")
-    if protocol.get("protocol_version") != 1:
+    if protocol.get("protocol_version") not in {1, 2}:
         raise ValueError("unsupported payoff atlas protocol version")
 
     windows = protocol.get("forward_windows_reference_sessions")
@@ -63,6 +63,12 @@ def validate_payoff_atlas_protocol(protocol: dict[str, object]) -> None:
     )
     if any(restrictions.get(key) is not False for key in prohibited):
         raise ValueError("combined states, portfolios, and selection must be disabled")
+    if protocol["protocol_version"] >= 2:
+        market_input = protocol.get("market_input", {})
+        sample_start = pd.Timestamp(market_input.get("sample_start"))
+        sample_end = pd.Timestamp(market_input.get("sample_end"))
+        if sample_start > sample_end:
+            raise ValueError("market sample start must not exceed sample end")
 
 
 def audit_payoff_atlas_protocol(

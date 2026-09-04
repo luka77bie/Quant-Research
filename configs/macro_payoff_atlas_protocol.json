@@ -1,6 +1,6 @@
 {
   "status": "frozen_before_etf_outcomes",
-  "protocol_version": 1,
+  "protocol_version": 2,
   "macro_input": {
     "protocol": "configs/macro_regime_protocol.json",
     "chronology": "outputs/macro_panel/macro_monthly_panel.csv",
@@ -9,6 +9,8 @@
   },
   "market_input": {
     "universe": "configs/etf_universe.csv",
+    "sample_start": "2018-01-01",
+    "sample_end": "2026-07-31",
     "reference_symbol": "510300",
     "asset_groups": [
       "bond",
