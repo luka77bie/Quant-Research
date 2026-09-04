@@ -30,12 +30,21 @@ from narrative_regime.macro.archive import (
     MacroEvidenceArchive,
     audit_macro_evidence,
 )
+from narrative_regime.macro.catalog_validation import (
+    MINIMUM_FAMILY_COVERAGE,
+    MacroMonthlyArchive,
+    audit_monthly_catalog,
+    build_article_evidence_ledger,
+    monthly_cache_path,
+    summarize_fetch,
+)
 from narrative_regime.macro.discovery import (
     DEFAULT_INDEX_URLS,
     MacroCatalogDiscovery,
     archive_index_pages,
     build_coverage_catalog,
 )
+from narrative_regime.macro.panel import build_macro_panel
 from narrative_regime.macro.pilot import audit_macro_release_pilot
 from narrative_regime.macro.search_backfill import (
     NbsSearchBackfill,
@@ -284,6 +293,36 @@ def build_parser() -> argparse.ArgumentParser:
     macro_seeds.add_argument("--catalog", type=Path, required=True)
     macro_seeds.add_argument("--seeds", type=Path, required=True)
     macro_seeds.add_argument("--output-dir", type=Path, required=True)
+
+    macro_catalog_fetch = subparsers.add_parser(
+        "macro-catalog-fetch",
+        help="cache full monthly macro catalog pages with per-record resume",
+    )
+    macro_catalog_fetch.add_argument("--catalog", type=Path, required=True)
+    macro_catalog_fetch.add_argument("--root", type=Path, default=Path.cwd())
+    macro_catalog_fetch.add_argument("--attempts", type=int, default=3)
+    macro_catalog_fetch.add_argument("--delay", type=float, default=0.2)
+    macro_catalog_fetch.add_argument(
+        "--record-ids", help="comma-separated record IDs to resume selectively"
+    )
+    macro_catalog_fetch.add_argument("--refresh", action="store_true")
+    macro_catalog_fetch.add_argument("--output-dir", type=Path, required=True)
+
+    macro_catalog_validate = subparsers.add_parser(
+        "macro-catalog-validate",
+        help="validate cached macro articles without reading market returns",
+    )
+    macro_catalog_validate.add_argument("--catalog", type=Path, required=True)
+    macro_catalog_validate.add_argument("--root", type=Path, default=Path.cwd())
+    macro_catalog_validate.add_argument("--output-dir", type=Path, required=True)
+
+    macro_panel = subparsers.add_parser(
+        "macro-panel",
+        help="build a frozen return-blind macro state chronology",
+    )
+    macro_panel.add_argument("--ledger", type=Path, required=True)
+    macro_panel.add_argument("--protocol", type=Path, required=True)
+    macro_panel.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -1510,6 +1549,176 @@ def run_macro_catalog_apply_seeds(args: argparse.Namespace) -> int:
     )
 
 
+def run_macro_catalog_fetch(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    record_ids = None
+    if args.record_ids is not None:
+        record_ids = [
+            item.strip() for item in args.record_ids.split(",") if item.strip()
+        ]
+        if not record_ids:
+            raise ValueError("--record-ids must contain at least one record ID")
+    archive = MacroMonthlyArchive(
+        args.root,
+        attempts=args.attempts,
+        inter_record_delay_seconds=args.delay,
+    )
+    results = archive.fetch_catalog(
+        catalog, record_ids=record_ids, refresh=args.refresh
+    )
+    summary = summarize_fetch(results)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    results_path = args.output_dir / "macro_catalog_fetch_results.csv"
+    summary_path = args.output_dir / "macro_catalog_fetch_summary.json"
+    results.to_csv(results_path, index=False)
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    command = [
+        "nrea",
+        "macro-catalog-fetch",
+        "--catalog",
+        str(args.catalog),
+        "--root",
+        str(args.root),
+        "--attempts",
+        str(args.attempts),
+        "--delay",
+        str(args.delay),
+        "--output-dir",
+        str(args.output_dir),
+    ]
+    if args.record_ids is not None:
+        command.extend(["--record-ids", args.record_ids])
+    if args.refresh:
+        command.append("--refresh")
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        command=command,
+        parameters={
+            "attempts": args.attempts,
+            "inter_record_delay_seconds": args.delay,
+            "selected_record_ids": record_ids or "all",
+            "refresh": args.refresh,
+            "etf_returns_read": False,
+            "regime_thresholds_constructed": False,
+            "outcome": summary["monthly_catalog_fetch_gate"],
+        },
+        outputs=[results_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_catalog_fetch_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if summary["monthly_catalog_fetch_gate"] == "pass" else 1
+
+
+def run_macro_catalog_validate(args: argparse.Namespace) -> int:
+    catalog = pd.read_csv(args.catalog, dtype=str, keep_default_na=False)
+    audit, summary = audit_monthly_catalog(args.root, catalog)
+    ledger = build_article_evidence_ledger(audit)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    audit_path = args.output_dir / "macro_article_validation_audit.csv"
+    ledger_path = args.output_dir / "macro_article_evidence_ledger.csv"
+    summary_path = args.output_dir / "macro_article_validation_summary.json"
+    audit.to_csv(audit_path, index=False)
+    ledger.to_csv(ledger_path, index=False)
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    raw_inputs: list[Path] = []
+    for record_id in audit.loc[audit["page_cached"], "record_id"]:
+        page_path = monthly_cache_path(args.root, str(record_id))
+        raw_inputs.extend([page_path, page_path.with_suffix(".meta.json")])
+    manifest = build_run_manifest(
+        input_path=args.catalog,
+        additional_inputs=raw_inputs,
+        command=[
+            "nrea",
+            "macro-catalog-validate",
+            "--catalog",
+            str(args.catalog),
+            "--root",
+            str(args.root),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "minimum_family_coverage": MINIMUM_FAMILY_COVERAGE,
+            "required_checks": [
+                "official domain",
+                "catalog title",
+                "statistical period",
+                "release timing",
+                "headline value",
+            ],
+            "etf_returns_read": False,
+            "regime_thresholds_constructed": False,
+            "outcome": summary["article_validation_gate"],
+        },
+        outputs=[audit_path, ledger_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_article_validation_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if summary["article_validation_gate"] == "pass" else 1
+
+
+def run_macro_panel(args: argparse.Namespace) -> int:
+    ledger = pd.read_csv(args.ledger, dtype=str, keep_default_na=False)
+    protocol = json.loads(args.protocol.read_text(encoding="utf-8"))
+    result = build_macro_panel(ledger, protocol)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    panel_path = args.output_dir / "macro_monthly_panel.csv"
+    counts_path = args.output_dir / "macro_state_counts.csv"
+    summary_path = args.output_dir / "macro_panel_summary.json"
+    result.panel.to_csv(panel_path, index=False)
+    result.state_counts.to_csv(counts_path, index=False)
+    summary_path.write_text(
+        json.dumps(result.summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    manifest = build_run_manifest(
+        input_path=args.ledger,
+        additional_inputs=[args.protocol],
+        command=[
+            "nrea",
+            "macro-panel",
+            "--ledger",
+            str(args.ledger),
+            "--protocol",
+            str(args.protocol),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "protocol_version": protocol["protocol_version"],
+            "minimum_state_observations": protocol[
+                "minimum_state_observations"
+            ],
+            "combined_states_constructed": False,
+            "etf_returns_read": False,
+            "outcome": result.summary["macro_panel_gate"],
+        },
+        outputs=[panel_path, counts_path, summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_panel_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(result.summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if result.summary["macro_panel_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -1556,6 +1765,12 @@ def main(argv: list[str] | None = None) -> int:
         return run_macro_catalog_backfill(args)
     if args.command == "macro-catalog-apply-seeds":
         return run_macro_catalog_apply_seeds(args)
+    if args.command == "macro-catalog-fetch":
+        return run_macro_catalog_fetch(args)
+    if args.command == "macro-catalog-validate":
+        return run_macro_catalog_validate(args)
+    if args.command == "macro-panel":
+        return run_macro_panel(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

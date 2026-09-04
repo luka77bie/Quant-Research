@@ -318,3 +318,46 @@ The result permits construction of the complete monthly official-release
 catalog. It does not establish full coverage or strict point-in-time status.
 The 2025 year-end PBOC M2 original page was not stably discoverable during this
 search, so collection risk remains explicit rather than filled retrospectively.
+
+## 2026-09-04: Pass the full monthly article-validation gate
+
+The 2018-2025 catalog contains 288 expected family-month records and 287
+official URLs. The resumable archive downloaded all 287 available pages with no
+network failures. The offline audit verifies every available page's catalog
+title, statistical month, release timing, and headline value: 96/96 PMI, 96/96
+CPI, and 95/96 national M2. January 2025 national M2 remains explicitly missing.
+
+The first audit identified the official January 2025 PMI release on 27 January
+as four days before month-end. The plausibility lower bound was widened from
+three to seven days to permit pre-holiday publication. This calendar correction
+was recorded before any ETF return was read and is covered by a regression
+test. Two records have date-only timing; all other available records have minute
+precision.
+
+The gate passes at current-page publication-record level. It does not upgrade
+any record beyond `provisional_no_snapshot`, so the evidence cannot support a
+strict historical-vintage claim. The next permitted step is to freeze
+transformations and release-lag rules, then build and audit a return-blind macro
+panel. ETF payoff joins remain prohibited.
+
+## 2026-09-04: Pass the return-blind macro panel gate
+
+Protocol v1 freezes manufacturing PMI relative to 50 as the growth state and
+three-month changes in CPI YoY and M2 YoY as inflation and liquidity direction.
+It uses reported minute timestamps, makes date-only records available at the
+next Beijing midnight, takes the latest required family release as panel
+availability, and never fills a missing value. Combined states and ETF returns
+remain disabled.
+
+The resulting chronology has 95 complete months and one incomplete month from
+the registered January 2025 national M2 gap. Growth has 43 contraction and 50
+expansion observations; inflation has 42 falling and 46 rising observations;
+liquidity has 47 decelerating and 41 accelerating observations. Exact neutral
+or stable cases contain only two to four months and are retained but marked
+unreportable under the eight-observation rule.
+
+Counts use the 95-month common sample. Each reportable state appears across 11
+to 15 separate episodes, so no primary state is supplied by a single contiguous
+event. The return-blind macro panel gate passes. The next permitted step is to
+freeze the ETF group, horizon, execution, multiplicity, and reporting rules for
+the payoff atlas before reading outcomes.

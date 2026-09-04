@@ -1,0 +1,51 @@
+{
+  "protocol_version": 1,
+  "sample": {
+    "start_period": "2018-01",
+    "end_period": "2025-12",
+    "expected_missing_record_ids": [
+      "pbc_m2_2025_01"
+    ]
+  },
+  "availability": {
+    "minute_precision": "reported_timestamp",
+    "date_precision": "next_midnight_asia_shanghai",
+    "panel_rule": "latest_required_family_release",
+    "missing_value_rule": "no_fill"
+  },
+  "dimensions": {
+    "growth": {
+      "source_family": "nbs_pmi",
+      "transformation": "level",
+      "state_rule": "below_equal_above_50",
+      "states": [
+        "contraction",
+        "neutral",
+        "expansion"
+      ]
+    },
+    "inflation": {
+      "source_family": "nbs_cpi",
+      "transformation": "three_month_change",
+      "state_rule": "negative_zero_positive",
+      "states": [
+        "falling",
+        "stable",
+        "rising"
+      ]
+    },
+    "liquidity": {
+      "source_family": "pbc_m2",
+      "transformation": "three_month_change",
+      "state_rule": "negative_zero_positive",
+      "states": [
+        "decelerating",
+        "stable",
+        "accelerating"
+      ]
+    }
+  },
+  "minimum_state_observations": 8,
+  "combined_states_permitted": false,
+  "etf_returns_permitted": false
+}

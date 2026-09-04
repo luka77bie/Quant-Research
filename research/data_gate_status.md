@@ -1,4 +1,4 @@
-# Data Gate Status: 2026-08-08
+# Data Gate Status: 2026-09-04
 
 ## Passed
 
@@ -42,25 +42,26 @@
   records across manufacturing PMI, CPI YoY, and M2 YoY. Eleven are original
   release pages and one is an official retrospective confirmation; all 12
   current URLs were reachable on 2026-08-08.
+- The full Study 02 catalog caches and validates all 287 available official
+  articles. PMI passes 96/96, CPI passes 96/96, and M2 passes 95/96. The missing
+  January 2025 national M2 source remains explicit.
 
-## Current Macro Blocker
+## Current Macro Gate
 
-The Study 02 current-page evidence gate passes. All 12 official pages are cached
-locally with retrieval metadata and committed SHA-256 values. Exact normalized
-visible-text fragments verify all 12 release-date or timestamp claims and all
-12 values. Eleven timestamps have minute precision; the March 2023 M2 record
-has date precision only and is conservatively available at end of day.
+The full current-page article-validation gate passes. All 287 available pages
+have matching record IDs, URLs, and checksums; their titles, statistical months,
+release timing, and headline values validate. Two records retain date-only
+timing rather than fabricated intraday precision. January 2025 national M2 is
+the sole source gap and is not filled from a regional or retrospective series.
 
-None of the 12 records has a locked contemporaneous snapshot, so strict
-point-in-time status remains provisional. Macro-state construction and ETF
-payoff joins remain blocked until full monthly coverage, transformations, and
-release-lag rules are frozen.
-
-The cross-year parser test now passes 9 of 9 official anchor pages: NBS PMI and
-CPI for 2018, 2021, and 2025, plus PBOC M2 for 2018, 2021, and 2024. Each source
-family uses one deterministic release-time and headline-value rule. Full monthly
-catalog coverage, contemporaneous snapshots, transformations, and release-lag
-rules remain open; ETF outcome joins are still prohibited.
+All records remain `provisional_no_snapshot`: current official pages support a
+publication-time reconstruction but do not prove that page contents are
+unchanged historical vintages. The next permitted task is to freeze macro
+transformations, availability rules, and release lags without ETF outcomes.
+That contract and return-blind panel now pass their audit: 95/96 months are
+complete, the January 2025 M2 gap is not filled, and each dimension has two
+reportable states with at least eight observations. ETF payoff joins remain
+prohibited until the payoff-atlas comparison and reporting protocol is frozen.
 
 ## Previous Provider Failure
 

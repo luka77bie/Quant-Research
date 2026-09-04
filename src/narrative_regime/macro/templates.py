@@ -22,26 +22,42 @@ def extract_macro_release(
     text = extract_visible_text(content)
     if source_family == "nbs_pmi":
         release_at = _extract_nbs_release_at(text)
-        value = _extract_float(
+    elif source_family == "nbs_cpi":
+        release_at = _extract_nbs_release_at(text)
+    elif source_family == "pbc_m2":
+        release_at = _extract_pbc_release_at(text)
+    else:
+        raise ValueError(f"unsupported macro source family: {source_family}")
+    value = _extract_macro_value(text, source_family=source_family)
+    return ExtractedMacroRelease(release_at=release_at, value=value)
+
+
+def extract_macro_value(content: bytes, *, source_family: str) -> float:
+    """Extract the registered headline value without requiring release time."""
+    return _extract_macro_value(
+        extract_visible_text(content), source_family=source_family
+    )
+
+
+def _extract_macro_value(text: str, *, source_family: str) -> float:
+    if source_family == "nbs_pmi":
+        return _extract_float(
             text,
             r"(?:中国)?制造业采购经理指数（PMI）为(\d+(?:\.\d+)?)%",
             "manufacturing PMI",
         )
-    elif source_family == "nbs_cpi":
-        release_at = _extract_nbs_release_at(text)
+    if source_family == "nbs_cpi":
         match = re.search(
             r"全国居民消费价格同比(上涨|下降)(\d+(?:\.\d+)?)%", text
         )
         if "全国居民消费价格同比持平" in text:
-            value = 0.0
-        elif match:
+            return 0.0
+        if match:
             direction, magnitude = match.groups()
-            value = float(magnitude) * (-1 if direction == "下降" else 1)
-        else:
-            raise ValueError("CPI headline value not found")
-    elif source_family == "pbc_m2":
-        release_at = _extract_pbc_release_at(text)
-        value = _extract_float(
+            return float(magnitude) * (-1 if direction == "下降" else 1)
+        raise ValueError("CPI headline value not found")
+    if source_family == "pbc_m2":
+        return _extract_float(
             text,
             (
                 r"广义货币[（(]M2[）)]余额\d+(?:\.\d+)?万亿元[,，]"
@@ -49,9 +65,7 @@ def extract_macro_release(
             ),
             "M2 YoY",
         )
-    else:
-        raise ValueError(f"unsupported macro source family: {source_family}")
-    return ExtractedMacroRelease(release_at=release_at, value=value)
+    raise ValueError(f"unsupported macro source family: {source_family}")
 
 
 def audit_template_drift(

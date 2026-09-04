@@ -7,8 +7,9 @@ and liquid ETF allocation.
 
 Status: Study 01 is complete as a qualified negative result. Study 02 has passed
 its official-release, current-page evidence, and cross-year template gates;
-its 2018-2025 source catalog now passes the 95% family-coverage gate. Article
-validation and strict historical-version verification remain open.
+its 2018-2025 source catalog, full article validation, and return-blind macro
+panel gates now pass. The next stage freezes the ETF payoff-atlas protocol.
+Strict historical-version verification remains open.
 
 ## Research identity
 
@@ -29,7 +30,7 @@ by itself.
 | Study | Question | Status | Main decision |
 | --- | --- | --- | --- |
 | 01 Narrative-Regime ETF Allocation | Does PBOC policy language add information beyond ETF momentum and market controls? | Complete, exploratory | No adjusted candidate; do not construct a narrative portfolio |
-| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Source catalog gate passed | Validate every article before defining regimes |
+| 02 China Macro Regime ETF Atlas | How do liquid ETF groups behave across pre-defined growth, inflation, and liquidity states? | Return-blind panel passed | Freeze the payoff-atlas protocol before reading ETF outcomes |
 | 03 Policy Event Research | Which scheduled policy events create repeatable cross-asset repricing after realistic delays? | Planned | Start only after Study 02 passes its data gate |
 
 See [`lab/roadmap_v1_1.md`](lab/roadmap_v1_1.md) for scope and sequencing,
@@ -89,11 +90,12 @@ nrea macro-catalog-discovery \
   --output-dir outputs/macro_catalog_discovery
 ```
 
-The index-only pass discovers 53/96 NBS PMI, 53/96 NBS CPI, and 95/96 PBOC M2
+The index-only pass discovered 53/96 NBS PMI, 53/96 NBS CPI, and 95/96 PBOC M2
 records. Exact-title official search backfills 72 NBS records; 14 reviewed
 official candidates complete both NBS families pending article validation.
-PBOC M2 remains at 95/96 with January 2025 explicitly missing. See
-`research/macro_catalog_backfill_report.md` for the next gate.
+The full article audit now verifies all 287 available pages: 96/96 PMI, 96/96
+CPI, and 95/96 M2. January 2025 national M2 remains explicitly missing. See
+`research/macro_article_validation_report.md` for the result and limitations.
 
 Reproduce the exact-title backfill and apply the reviewed residual candidates:
 
@@ -107,6 +109,42 @@ nrea macro-catalog-apply-seeds \
   --seeds configs/macro_catalog_backfill_seeds.csv \
   --output-dir outputs/macro_catalog_seeded
 ```
+
+Cache and validate every available monthly article before defining any regime:
+
+```bash
+nrea macro-catalog-fetch \
+  --catalog configs/macro_monthly_source_catalog.csv \
+  --root . \
+  --output-dir outputs/macro_article_validation
+
+nrea macro-catalog-validate \
+  --catalog configs/macro_monthly_source_catalog.csv \
+  --root . \
+  --output-dir outputs/macro_article_validation
+```
+
+The fetch is resumable per record and leaves the one missing national M2 month
+explicit. Use `--record-ids` to retry only failed records. The offline audit
+checks the official URL, catalog title, statistical period, release timing, and
+headline value. PMI, CPI, and M2 must each reach 95% article-ready coverage;
+otherwise Study 02 remains blocked and no ETF returns or regime thresholds are
+used.
+
+Build the frozen return-blind macro panel from the committed evidence ledger:
+
+```bash
+nrea macro-panel \
+  --ledger configs/macro_article_evidence_ledger.csv \
+  --protocol configs/macro_regime_protocol.json \
+  --output-dir outputs/macro_panel
+```
+
+The protocol uses PMI relative to 50 for growth and three-month changes in CPI
+YoY and M2 YoY for inflation and liquidity direction. It does not fill missing
+data or create combined states. The current panel has 95 complete months and
+passes the minimum eight-observation gate for two economically meaningful
+states in every dimension. See `research/macro_panel_report.md`.
 
 ## Study 01: Narrative-Regime ETF Allocation
 
