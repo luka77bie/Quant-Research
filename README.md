@@ -146,6 +146,20 @@ data or create combined states. The current panel has 95 complete months and
 passes the minimum eight-observation gate for two economically meaningful
 states in every dimension. See `research/macro_panel_report.md`.
 
+Audit the frozen payoff-atlas protocol before reading ETF outcomes:
+
+```bash
+nrea macro-payoff-protocol-audit \
+  --protocol configs/macro_payoff_atlas_protocol.json \
+  --universe configs/etf_universe.csv \
+  --output-dir outputs/macro_payoff_protocol
+```
+
+The protocol registers 54 state-difference tests across three macro dimensions,
+six existing ETF groups, and 5-, 20-, and 60-session horizons. It applies one
+Benjamini-Hochberg family, keeps the 20-session horizon primary, and prohibits
+combined states, portfolio construction, and specification selection.
+
 ## Study 01: Narrative-Regime ETF Allocation
 
 The flagship study is a narrower follow-up to

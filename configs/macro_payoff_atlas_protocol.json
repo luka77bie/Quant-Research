@@ -1,0 +1,76 @@
+{
+  "status": "frozen_before_etf_outcomes",
+  "protocol_version": 1,
+  "macro_input": {
+    "protocol": "configs/macro_regime_protocol.json",
+    "chronology": "outputs/macro_panel/macro_monthly_panel.csv",
+    "point_in_time_claim": "publication_time_reconstruction_only",
+    "required_panel_ready": true
+  },
+  "market_input": {
+    "universe": "configs/etf_universe.csv",
+    "reference_symbol": "510300",
+    "asset_groups": [
+      "bond",
+      "broad_equity",
+      "commodity",
+      "large_cap",
+      "overseas",
+      "sector"
+    ],
+    "dynamic_eligibility": true,
+    "required_endpoint_tradability": true,
+    "price_field": "adjusted_close"
+  },
+  "activation": {
+    "delay_hours": 24,
+    "rule": "first_reference_close_at_or_after_delayed_availability"
+  },
+  "forward_windows_reference_sessions": [
+    5,
+    20,
+    60
+  ],
+  "primary_window_reference_sessions": 20,
+  "state_comparisons": {
+    "growth": [
+      "contraction",
+      "expansion"
+    ],
+    "inflation": [
+      "falling",
+      "rising"
+    ],
+    "liquidity": [
+      "decelerating",
+      "accelerating"
+    ]
+  },
+  "reporting": {
+    "cell_statistics": [
+      "observations",
+      "episodes",
+      "mean_forward_return",
+      "median_forward_return",
+      "standard_deviation",
+      "positive_return_rate"
+    ],
+    "difference_order": "second_state_minus_first_state",
+    "difference_estimator": "ols_state_indicator_hac",
+    "hac_maxlags_rule": "ceiling_window_divided_by_20",
+    "minimum_observations_per_state": 8,
+    "minimum_episodes_per_state": 5,
+    "winsorization": "none",
+    "missing_data": "explicit_exclusion_no_fill",
+    "multiplicity": "benjamini_hochberg_all_dimension_group_window_tests",
+    "fdr_reference": 0.1
+  },
+  "restrictions": {
+    "combined_states": false,
+    "portfolio_construction": false,
+    "specification_selection": false,
+    "mom60_comparison": "deferred_until_atlas_complete",
+    "mom60_cost_bps_when_permitted": 10,
+    "confirmatory_claim": false
+  }
+}

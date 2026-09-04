@@ -361,3 +361,21 @@ to 15 separate episodes, so no primary state is supplied by a single contiguous
 event. The return-blind macro panel gate passes. The next permitted step is to
 freeze the ETF group, horizon, execution, multiplicity, and reporting rules for
 the payoff atlas before reading outcomes.
+
+## 2026-09-04: Freeze the ETF payoff-atlas protocol before outcomes
+
+The protocol audit reads the committed 18-ETF universe but no ETF prices. It
+registers the six existing asset groups, growth/inflation/liquidity state pairs,
+and 5-, 20-, and 60-reference-session forward horizons, with 20 sessions
+primary. Macro rows receive a 24-hour delay before the first eligible reference
+close. Dynamic listing eligibility and endpoint tradability remain mandatory.
+
+The full grid contains 54 state-difference tests. Each cell requires at least
+eight observations and five state episodes. Differences use an OLS state
+indicator with horizon-scaled Newey-West covariance; all 54 p-values enter one
+Benjamini-Hochberg family at a 10% reference FDR. No winsorization, combined
+state, portfolio, or specification selection is permitted.
+
+The protocol gate passes with `etf_prices_read=false`. The next permitted action
+is to rebuild and audit the Tencent market common sample, then run the complete
+registered atlas without intermediate selection.

@@ -45,6 +45,10 @@ from narrative_regime.macro.discovery import (
     build_coverage_catalog,
 )
 from narrative_regime.macro.panel import build_macro_panel
+from narrative_regime.macro.payoff_atlas import (
+    audit_payoff_atlas_protocol,
+    load_payoff_atlas_protocol,
+)
 from narrative_regime.macro.pilot import audit_macro_release_pilot
 from narrative_regime.macro.search_backfill import (
     NbsSearchBackfill,
@@ -323,6 +327,14 @@ def build_parser() -> argparse.ArgumentParser:
     macro_panel.add_argument("--ledger", type=Path, required=True)
     macro_panel.add_argument("--protocol", type=Path, required=True)
     macro_panel.add_argument("--output-dir", type=Path, required=True)
+
+    payoff_protocol = subparsers.add_parser(
+        "macro-payoff-protocol-audit",
+        help="audit the frozen payoff-atlas plan before reading ETF outcomes",
+    )
+    payoff_protocol.add_argument("--protocol", type=Path, required=True)
+    payoff_protocol.add_argument("--universe", type=Path, required=True)
+    payoff_protocol.add_argument("--output-dir", type=Path, required=True)
     return parser
 
 
@@ -1719,6 +1731,45 @@ def run_macro_panel(args: argparse.Namespace) -> int:
     return 0 if result.summary["macro_panel_gate"] == "pass" else 1
 
 
+def run_macro_payoff_protocol_audit(args: argparse.Namespace) -> int:
+    protocol = load_payoff_atlas_protocol(args.protocol)
+    universe = pd.read_csv(args.universe, dtype={"symbol": str})
+    summary = audit_payoff_atlas_protocol(protocol, universe)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    summary_path = args.output_dir / "macro_payoff_protocol_summary.json"
+    summary_path.write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    manifest = build_run_manifest(
+        input_path=args.protocol,
+        additional_inputs=[args.universe],
+        command=[
+            "nrea",
+            "macro-payoff-protocol-audit",
+            "--protocol",
+            str(args.protocol),
+            "--universe",
+            str(args.universe),
+            "--output-dir",
+            str(args.output_dir),
+        ],
+        parameters={
+            "etf_prices_read": False,
+            "portfolio_constructed": False,
+            "outcome": summary["payoff_protocol_gate"],
+        },
+        outputs=[summary_path],
+        repository=Path.cwd(),
+    )
+    manifest_path = args.output_dir / "macro_payoff_protocol_manifest.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"output_dir={args.output_dir}")
+    return 0 if summary["payoff_protocol_gate"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "download":
@@ -1771,6 +1822,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_macro_catalog_validate(args)
     if args.command == "macro-panel":
         return run_macro_panel(args)
+    if args.command == "macro-payoff-protocol-audit":
+        return run_macro_payoff_protocol_audit(args)
     raise AssertionError(f"unhandled command: {args.command}")
 
 
